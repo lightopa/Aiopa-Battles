@@ -15,7 +15,9 @@ def queue():
     key = random.random()
     payload = {"key": key}
     jpayload = json.dumps(str(payload))
+    print("start")
     r = requests.post(v.server + "connect/", data=jpayload)
+    print("end")
     data = ast.literal_eval(r.text)
     if data["key"] == key:
         v.unid = data["unid"]
@@ -29,6 +31,7 @@ def checkQueue():
         r = requests.post(v.server + "check_queue/", data=jpayload)
         data = ast.literal_eval(r.text)
         if data[0] == True:
-            print(data[1])
+            v.game = data[1]
+            return
         else:
             print("False")

@@ -51,3 +51,25 @@ class Button(py.sprite.Sprite):
                     if self.ID == "continue":
                         return True
         return False
+    
+class Text(py.sprite.Sprite):
+    
+    def __init__(self, text, pos, colour, font, size, centred = False):
+        super().__init__()
+        self.text = text
+        self.pos = pos
+        self.colour = colour
+        self.font = font
+        self.size = size
+        self.centred = centred
+        
+    def update(self):
+        pos = self.pos
+        font = py.font.Font(self.font, self.size)
+        label = font.render(self.text, 1, self.colour)
+        if self.centred:
+            pos = list(self.pos)
+            pos[0] -= font.size(self.text)[0] / 2
+            pos[1] -= font.size(self.text)[1] / 2
+            pos = tuple(pos)
+        v.screen.blit(label, pos)

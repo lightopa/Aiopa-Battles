@@ -67,6 +67,12 @@ def mainMenu():
 
 
 def queue():
+    loading = menuItems.Text("Sending Handshake", (640, 360), (150, 50, 50), "assets/font/Galdeano.ttf", 80, centred=True)
+    v.screen.fill((50, 100, 200))
+    loading.update()
+    refresh()
+    py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
+    
     network.queue()
     while True:
         py.event.pump()
@@ -75,4 +81,26 @@ def queue():
         v.clock.tick(60)
         
         v.screen.fill((50, 100, 200))
+        for event in v.events:
+            if event.type == py.USEREVENT:
+                if loading.text == "Finding Game":
+                    loading.text = "Finding Game."
+                elif loading.text == "Finding Game.":
+                    loading.text = "Finding Game.."
+                elif loading.text == "Finding Game..":
+                    loading.text = "Finding Game..."
+                elif loading.text == "Finding Game...":
+                    loading.text = "Finding Game"
+        if v.game != None:
+            game()
+        loading.update()
+        refresh()
+        
+def game():
+    while True:
+        py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        v.clock.tick(60)
+        v.screen.fill((255, 255, 255))
         refresh()
