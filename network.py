@@ -1,5 +1,9 @@
-import requests
-import json
+import sys
+try:
+    import requests
+except:
+    sys.path.append("lib")
+    import requestsimport json
 import random
 import variables as v
 import ast
