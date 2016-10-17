@@ -3,7 +3,9 @@ try:
     import requests
 except:
     sys.path.append("lib")
-    import requestsimport json
+    import requests
+    
+import json
 import random
 import variables as v
 import ast
