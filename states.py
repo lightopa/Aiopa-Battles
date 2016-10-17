@@ -2,25 +2,30 @@ import pygame as py
 import variables as v
 import menuItems
 import network
+import gameItems
 
 def boot():
     py.init()
     v.display = py.display.set_mode((640, 360))
     v.screen = py.Surface((1280, 720))
-    v.clock = py.time.Clock()
-    preload()
-
-def preload():
-    assets = [("", ""),
-              ("", "")]
-    
-    v.i = {}
-    """for img in assets:
-        v.i[img[0]] = py.image.load(img[1])"""
-        
+    v.clock = py.time.Clock() 
     mainMenu()
     
 def refresh():
+    for event in v.events:
+        if event.type == py.KEYDOWN:
+            if event.key == py.K_F11:
+                v.fullscreen = not v.fullscreen
+                if v.fullscreen:
+                    v.display = py.display.set_mode((1280, 720), py.FULLSCREEN)
+                    v.windowHeight = 720
+                    v.windowWidth = 1280
+                else:
+                    v.display = py.display.set_mode((640, 360))
+                    v.windowHeight = 360
+                    v.windowWidth = 640
+    
+    
     screen_rect = py.Rect(0, 0, v.windowWidth, v.windowHeight)
     image_rect = py.Rect(0, 0, 1280, 720)
     
@@ -61,7 +66,8 @@ def mainMenu():
         for button in buttons:
             if button.ID == "play":
                 if button.pressed():
-                    queue()
+                    #queue()
+                    game()
                 
         refresh()
 
@@ -97,10 +103,15 @@ def queue():
         refresh()
         
 def game():
+    tiles = py.sprite.Group()
+    for y in range(0, 3):
+        for x in range(0, 4):
+            tiles.add(gameItems.tile((x, y), "grass"))
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
         v.screen.fill((255, 255, 255))
+        tiles.update()
         refresh()
