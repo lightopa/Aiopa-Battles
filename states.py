@@ -103,15 +103,18 @@ def queue():
         refresh()
         
 def game():
+    background = py.image.load("assets/image/paper.png")
+    background = py.transform.scale(background, (1280, 720))
     tiles = py.sprite.Group()
     for y in range(0, 3):
         for x in range(0, 4):
-            tiles.add(gameItems.tile((x, y), "grass"))
+            tiles.add(gameItems.tile((x, y), "board"))
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
         v.screen.fill((255, 255, 255))
+        v.screen.blit(background, (0, 0))
         tiles.update()
         refresh()

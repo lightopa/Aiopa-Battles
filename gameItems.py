@@ -37,15 +37,21 @@ class tile(py.sprite.Sprite):
         super().__init__()
         sheet = SpriteSheet("assets/image/tiles.png", 6, 5)
         size = 150
-        if style == "grass":
-            self.image = sheet.images[random.choice([0, 5])]
-        self.image = py.transform.scale(self.image, (size, size))
-        self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
         
         self.border = py.Surface((size, size), py.SRCALPHA, 32).convert_alpha()
-        py.draw.rect(self.border, (200, 255, 200), (0, 0, size, size), 3)
-        self.border.fill((255, 255, 255, 50), special_flags=py.BLEND_RGBA_MULT)
+        py.draw.rect(self.border, (255, 255, 255), (0, 0, size, size), 3)
+        if style == "grass":
+            self.image = sheet.images[random.choice([0, 5])]
+            self.border.fill((200, 255, 200, 50), special_flags=py.BLEND_RGBA_ADD)
+        if style == "board":
+            self.image = py.Surface((size, size), py.SRCALPHA, 32)
+            self.image.fill((250, 230, 200, 100))
+            self.border.fill((150, 130, 100, 150), special_flags=py.BLEND_RGBA_MIN)
+        
+        self.image = py.transform.scale(self.image, (size, size))
+        self.image.blit(self.border, (0, 0))
+        self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
     
     def update(self):
         v.screen.blit(self.image, self.rect)
-        v.screen.blit(self.border, self.rect)
+        
