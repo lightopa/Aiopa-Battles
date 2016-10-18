@@ -69,18 +69,29 @@ class gameCard(py.sprite.Sprite):
     def __init__(self, cardClass, order):
         self.card = cardClass
         self.order = order
-        self.size = (125, 175)
+        self.size = (770, 1105)
         self.image = py.Surface(self.size)
         icon = py.image.load("assets/images/cards/" + cardClass.name + ".png")
-        icon = py.transform.scale(icon, (97, 63))
-        self.image.blit(icon, (13, 28))
+        #icon = py.transform.scale(icon, (97, 63))
+        self.image.blit(icon, (80, 170)) #13 28
         self.blank = py.image.load("assets/images/cards/blank_minion.png")
-        self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
+        #self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
         self.image.blit(self.blank, (0, 0))
         
-        font = py.font.Font("assets/fonts/Galdeano.ttf", 22)
+        font = py.font.Font("assets/fonts/Galdeano.ttf", 130)
         render = font.render(self.card.name, 1, (0, 0, 0))
-        self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 15 - render.get_rect().height/2))
+        self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 90 - render.get_rect().height/2))
+        
+        font = py.font.Font("assets/fonts/Galdeano.ttf", 80)
+        render = font.render(str(self.card.attack), 1, (0, 0, 0))
+        self.image.blit(render, (165 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
+        
+        render = font.render(str(self.card.speed), 1, (0, 0, 0))
+        self.image.blit(render, (385 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
+        
+        render = font.render(str(self.card.health), 1, (0, 0, 0))
+        self.image.blit(render, (610 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
+        
         self.hovered = False
         self.cycle = 0
         
@@ -96,9 +107,9 @@ class gameCard(py.sprite.Sprite):
         
         
         if self.cycle < 30 and self.hovered:
-            self.cycle += 2
+            self.cycle += 4
         if self.cycle > 0 and not self.hovered:
-            self.cycle -= 2   
+            self.cycle -= 4  
         if self.cycle >= 30:
             self.cycle = 30
         if self.cycle <= 0:
