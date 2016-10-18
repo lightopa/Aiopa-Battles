@@ -66,21 +66,22 @@ def mainMenu():
         for button in buttons:
             if button.ID == "play":
                 if button.pressed():
-                    #queue()
-                    game()
+                    queue()
+                    #game()
                 
         refresh()
 
 
 def queue():
-    loading = menuItems.Text("Sending Handshake", (640, 360), (150, 50, 50), "assets/font/Galdeano.ttf", 80, centred=True)
+    loading = menuItems.Text("Joing Queue", (640, 360), (150, 50, 50), "assets/font/Galdeano.ttf", 80, centred=True)
     v.screen.fill((50, 100, 200))
     loading.update()
     refresh()
     py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
     
-    network.queue()
+    network.queue(loading)
     while True:
+        print("loop")
         py.event.pump()
         v.events = []
         v.events = py.event.get()
@@ -89,14 +90,9 @@ def queue():
         v.screen.fill((50, 100, 200))
         for event in v.events:
             if event.type == py.USEREVENT:
-                if loading.text == "Finding Game":
-                    loading.text = "Finding Game."
-                elif loading.text == "Finding Game.":
-                    loading.text = "Finding Game.."
-                elif loading.text == "Finding Game..":
-                    loading.text = "Finding Game..."
-                elif loading.text == "Finding Game...":
-                    loading.text = "Finding Game"
+                loading.text = loading.text + "."
+                if loading.text[-4:] == "....":
+                    loading.text = loading.text[:-4]
         if v.game != None:
             game()
         loading.update()
