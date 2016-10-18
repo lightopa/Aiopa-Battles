@@ -8,6 +8,9 @@ mouse_pos = (0, 0)
 events = []
 fullscreen = False
 
+cards = {}
+
 server = "http://127.0.0.1:5000/"
 unid = 0
 game = None
+networkHalt = False

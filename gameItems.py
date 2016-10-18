@@ -35,7 +35,7 @@ class SpriteSheet(object):
 class tile(py.sprite.Sprite):
     def __init__(self, pos, style):
         super().__init__()
-        sheet = SpriteSheet("assets/image/tiles.png", 6, 5)
+        sheet = SpriteSheet("assets/images/tiles.png", 6, 5)
         size = 150
         
         self.border = py.Surface((size, size), py.SRCALPHA, 32).convert_alpha()
@@ -54,4 +54,82 @@ class tile(py.sprite.Sprite):
     
     def update(self):
         v.screen.blit(self.image, self.rect)
+
+class card:
+    def __init__(self, name, attack, health, speed, description, type, cost):
+        self.name = name
+        self.attack = attack
+        self.health = health
+        self.speed = speed
+        self.description = description
+        self.type = type
+        self.cost = cost
         
+class gameCard(py.sprite.Sprite):
+    def __init__(self, cardClass, order):
+        self.card = cardClass
+        self.order = order
+        self.size = (125, 175)
+        self.image = py.Surface(self.size)
+        icon = py.image.load("assets/images/cards/" + cardClass.name + ".png")
+        icon = py.transform.scale(icon, (97, 63))
+        self.image.blit(icon, (13, 28))
+        self.blank = py.image.load("assets/images/cards/blank_minion.png")
+        self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
+        self.image.blit(self.blank, (0, 0))
+        
+        font = py.font.Font("assets/fonts/Galdeano.ttf", 22)
+        render = font.render(self.card.name, 1, (0, 0, 0))
+        self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 15 - render.get_rect().height/2))
+        self.hovered = False
+        self.cycle = 0
+        
+        self.rect = py.Rect((0, 0), (155, 220))
+        self.rect.center = (415 + self.order * 20, 630)
+    
+    def update(self):
+        if self.rect.collidepoint(v.mouse_pos):
+            self.hovered = True
+        else:
+            self.hovered = False
+            sMod = 1
+        
+        
+        if self.cycle < 30 and self.hovered:
+            self.cycle += 2
+        if self.cycle > 0 and not self.hovered:
+            self.cycle -= 2   
+        if self.cycle >= 30:
+            self.cycle = 30
+        if self.cycle <= 0:
+            self.cycle = 0
+        
+        sMod = 1 + self.cycle/60
+        
+        self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
+        image = py.transform.scale(self.image, self.rect.size)
+        self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
+            
+        """self.rect = py.Rect((0, 0), (155, 220))
+        self.rect.center = (415 + self.order * 20, 630)
+        if self.rect.collidepoint(v.mouse_pos):
+            if self.firstChange:
+                self.firstChange = False
+                self.image = py.transform.scale(self.image, (self.size[0]*2, self.size[1]*2))
+                print(self.rect)
+                self.rect = py.Rect(self.rect.x - self.rect.width, 
+                                    self.rect.y - self.rect.height,
+                                    self.rect.width * 2,
+                                    self.rect.height * 2)
+                print(self.rect)"""
+        v.screen.blit(image, self.rect)
+        
+class fps(py.sprite.Sprite):
+    
+    def __init__(self):
+        super().__init__()
+        self.pos = (640, 20)
+        self.font = py.font.Font(None, int(30))
+    def update(self):
+        self.label = self.font.render(str(int(v.clock.get_fps())), 1, (255, 0, 0))
+        v.screen.blit(self.label, self.pos)

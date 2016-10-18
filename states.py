@@ -35,7 +35,7 @@ def refresh():
     else:
         fit_to_rect = image_rect.fit(screen_rect)
         fit_to_rect.center = screen_rect.center
-        if False: #smooth scale
+        if True: #smooth scale
             scaled = py.transform.smoothscale(v.screen, fit_to_rect.size)
         else:
             scaled = py.transform.scale(v.screen, fit_to_rect.size)
@@ -52,12 +52,12 @@ def refresh():
 
 def mainMenu():
     buttons = py.sprite.Group()
-    buttons.add(menuItems.Button("Play", (640, 360), 120, (0, 100, 200), (0, 50, 255), "assets/font/Galdeano.ttf", "play", centred=True))
+    buttons.add(menuItems.Button("Play", (640, 360), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "play", centred=True))
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
-        v.clock.tick(60)
+        v.clock.tick(30)
         
         v.screen.fill((0, 255, 255))
         
@@ -73,11 +73,13 @@ def mainMenu():
 
 
 def queue():
-    loading = menuItems.Text("Joing Queue", (640, 360), (150, 50, 50), "assets/font/Galdeano.ttf", 80, centred=True)
+    loading = menuItems.Text("Joining Queue", (640, 360), (150, 50, 50), "assets/fonts/Galdeano.ttf", 80, centred=True)
     v.screen.fill((50, 100, 200))
     loading.update()
     refresh()
     py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
+    
+    skip = menuItems.Button("Skip Queue", (640, 500), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "skip", centred=True)
     
     network.queue(loading)
     while True:
@@ -85,7 +87,7 @@ def queue():
         py.event.pump()
         v.events = []
         v.events = py.event.get()
-        v.clock.tick(60)
+        v.clock.tick(30)
         
         v.screen.fill((50, 100, 200))
         for event in v.events:
@@ -95,22 +97,37 @@ def queue():
                     loading.text = loading.text[:-4]
         if v.game != None:
             game()
+            
+        skip.update()
+        if skip.pressed():
+            v.networkHalt = True
+            game()
+            return
         loading.update()
         refresh()
         
 def game():
-    background = py.image.load("assets/image/paper.png")
+    network.getCards()
+    background = py.image.load("assets/images/paper.png")
     background = py.transform.scale(background, (1280, 720))
     tiles = py.sprite.Group()
     for y in range(0, 3):
         for x in range(0, 4):
             tiles.add(gameItems.tile((x, y), "board"))
+    
+    c = gameItems.gameCard(v.cards[list(v.cards)[0]], 0)
+    
+    fps = gameItems.fps()
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
-        v.clock.tick(60)
+        v.clock.tick(30)
         v.screen.fill((255, 255, 255))
         v.screen.blit(background, (0, 0))
+        
         tiles.update()
+        c.update()
+        
+        fps.update()
         refresh()

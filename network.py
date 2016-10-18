@@ -10,16 +10,15 @@ import random
 import variables as v
 import ast
 import threading
+import gameItems
 
 def localServerCheck():
     try:
-        r = requests.get("http://127.0.0.1:5000/")
-        print(r.status_code)
-        if r.status_code == 404:
-            raise Exception()
-    except:
+        r = requests.get("http://127.0.0.1:5000/check")
+        if r.text != "online":
+            raise Exception("not online")
+    except Exception as e:
         v.server = "http://server-lightning3105.rhcloud.com/"
-    print(v.server)
 
 
 def queue(loadObj):
@@ -50,6 +49,20 @@ def checkQueue():
         if data[0] == True:
             v.game = data[1]
             return
+        if v.networkHalt == True:
+            return
 
-#def getCards():
+def getCards():
+    print(v.server + "get_cards/")
+    r = requests.get(v.server + "get_cards/")
+    data = ast.literal_eval(r.text)
+    for value in data["cards"]:
+        v.cards[value["name"]] = gameItems.card(name=value["name"], 
+                                                attack=value["attack"],
+                                                health=value["health"],
+                                                speed=value["speed"],
+                                                description=value["description"],
+                                                type=value["type"],
+                                                cost=value["cost"])
+    print(v.cards)
     
