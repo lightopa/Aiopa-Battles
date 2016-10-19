@@ -92,8 +92,26 @@ class gameCard(py.sprite.Sprite):
         render = font.render(str(self.card.health), 1, (0, 0, 0))
         self.image.blit(render, (610 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
         
+        #description
+        words = self.card.description.split(" ")
+        line = ""
+        lineNum = 0
+        for word in words:
+            size = font.size(line + word + " ")
+            if size[0] < 590:
+                line = line + word + " "
+            else:
+                render = font.render(line, 1, (0, 0, 0))
+                self.image.blit(render, (100, 670 + lineNum * render.get_rect().height))
+                lineNum += 1
+                line = word + " "
+        render = font.render(line, 1, (0, 0, 0))
+        self.image.blit(render, (100, 670 + lineNum * render.get_rect().height))
+
         self.hovered = False
+        self.drag = False
         self.cycle = 0
+        self.dragPoint = (0, 0)
         
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
@@ -103,8 +121,13 @@ class gameCard(py.sprite.Sprite):
             self.hovered = True
         else:
             self.hovered = False
-            sMod = 1
         
+        if self.hovered:
+            for event in v.events:
+                if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                    self.drag = True
+                    self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+            
         
         if self.cycle < 30 and self.hovered:
             self.cycle += 4
@@ -117,9 +140,16 @@ class gameCard(py.sprite.Sprite):
         
         sMod = 1 + self.cycle/60
         
+        
+        
         self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
         image = py.transform.scale(self.image, self.rect.size)
         self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
+        
+        if self.drag:
+            print(self.dragPoint)
+            self.rect.x = v.mouse_pos[0] - self.dragPoint[0]
+            self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
             
         """self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
