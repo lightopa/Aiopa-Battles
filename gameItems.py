@@ -53,13 +53,23 @@ class tile(py.sprite.Sprite):
         self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
 
         self.hovered = False
+        
+        self.pos = pos
+    
+    def draw(self):
+        v.screen.blit(self.image, self.rect)
     
     def update(self):
-        v.screen.blit(self.image, self.rect)
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
         else:
             self.hovered = False
+        
+        if v.dragCard != None:
+            if self.pos[0] < 2:
+                v.availableTiles.add(self)
+        
+        self.draw()
             
 
 class card:
@@ -124,6 +134,9 @@ class gameCard(py.sprite.Sprite):
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
     
+    def draw(self):
+        v.screen.blit(self.rimage, self.rect)
+    
     def update(self):
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
@@ -135,8 +148,11 @@ class gameCard(py.sprite.Sprite):
                 if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
                     self.drag = True
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+                    v.dragCard = self
+                    v.availableTiles = py.sprite.Group()
                 if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
                     self.drag = False
+                    v.dragCard = None
                     for tile in v.tiles:
                         if tile.hovered:
                             self.tile = tile
@@ -155,12 +171,11 @@ class gameCard(py.sprite.Sprite):
             sMod = 1 + self.cycle/60
             
             self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
-            image = py.transform.scale(self.image, self.rect.size)
+            self.rimage = py.transform.scale(self.image, self.rect.size)
             self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
         else:
-            self.drag = False
             self.rect = py.Rect((0, 0), (125, 175))
-            image = py.transform.scale(self.image, self.rect.size)
+            self.rimage = py.transform.scale(self.image, self.rect.size)
             self.rect.center = self.tile.rect.center
         
         if self.drag:
@@ -180,7 +195,7 @@ class gameCard(py.sprite.Sprite):
                                     self.rect.width * 2,
                                     self.rect.height * 2)
                 print(self.rect)"""
-        v.screen.blit(image, self.rect)
+        self.draw()
         
 class fps(py.sprite.Sprite):
     
@@ -191,3 +206,46 @@ class fps(py.sprite.Sprite):
     def update(self):
         self.label = self.font.render(str(int(v.clock.get_fps())), 1, (255, 0, 0))
         v.screen.blit(self.label, self.pos)
+
+class castle(py.sprite.Sprite):
+    
+    def __init__(self, friendly):
+        super().__init__()
+        self.friendly = friendly
+        self.rect = py.Rect(0, 0, 300, 300)
+        self.image = py.image.load("assets/images/castle.png")
+        self.image = py.transform.scale(self.image, self.rect.size)
+        if self.friendly:
+            self.rect.center = (180, 280)
+        else:
+            self.rect.center = (1280 - 180, 280)
+            self.image.fill((255, 0, 0), special_flags=py.BLEND_MULT)
+        
+    
+    def update(self):
+        v.screen.blit(self.image, self.rect)
+        
+class blackFade(py.sprite.Sprite):
+    def __init__(self, limit=255, rate=6):
+        self.limit = limit
+        self.rate = 6
+        self.image = py.Surface((1280, 720))
+        self.image.fill((0, 0, 0))
+        self.alpha = 0
+    def draw(self):
+        self.image.set_alpha(self.alpha)
+        v.screen.blit(self.image, (0, 0))
+    
+    def fadeIn(self):
+        if self.alpha <= self.limit:
+            self.alpha += self.rate
+        if self.alpha > self.limit:
+            self.alpha = self.limit
+        self.draw()
+    def fadeOut(self):
+        if self.alpha > 0:
+            self.alpha -= self.rate
+        if self.alpha < 0:
+            self.alpha = 0
+        self.draw()
+        

@@ -114,10 +114,16 @@ def game():
     for y in range(0, 3):
         for x in range(0, 4):
             v.tiles.add(gameItems.tile((x, y), "board"))
+            print(x)
     
     c = gameItems.gameCard(v.cards[list(v.cards)[0]], 0)
     
     fps = gameItems.fps()
+    
+    castles = py.sprite.Group()
+    castles.add(gameItems.castle(True))
+    castles.add(gameItems.castle(False))
+    fade = gameItems.blackFade(100, 10)
     while True:
         py.event.pump()
         v.events = []
@@ -128,6 +134,16 @@ def game():
         
         v.tiles.update()
         c.update()
+        castles.update()
+        
+        if v.dragCard != None:
+            fade.fadeIn()
+            for tile in v.availableTiles:
+                tile.draw()
+            v.dragCard.draw()
+            
+        else:
+            fade.fadeOut()
         
         fps.update()
         refresh()
