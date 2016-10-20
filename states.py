@@ -110,10 +110,10 @@ def game():
     network.getCards()
     background = py.image.load("assets/images/paper.png")
     background = py.transform.scale(background, (1280, 720))
-    tiles = py.sprite.Group()
+    v.tiles = py.sprite.Group()
     for y in range(0, 3):
         for x in range(0, 4):
-            tiles.add(gameItems.tile((x, y), "board"))
+            v.tiles.add(gameItems.tile((x, y), "board"))
     
     c = gameItems.gameCard(v.cards[list(v.cards)[0]], 0)
     
@@ -126,7 +126,7 @@ def game():
         v.screen.fill((255, 255, 255))
         v.screen.blit(background, (0, 0))
         
-        tiles.update()
+        v.tiles.update()
         c.update()
         
         fps.update()
