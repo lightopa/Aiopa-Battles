@@ -129,6 +129,7 @@ def game():
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
+        v.hoverTile = None
         v.screen.fill((255, 255, 255))
         v.screen.blit(background, (0, 0))
         

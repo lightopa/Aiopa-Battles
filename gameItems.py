@@ -57,17 +57,34 @@ class tile(py.sprite.Sprite):
         self.pos = pos
     
     def draw(self):
-        v.screen.blit(self.image, self.rect)
+        v.screen.blit(self.rimage, self.rect)
     
     def update(self):
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
+            v.hoverTile = self
         else:
             self.hovered = False
         
         if v.dragCard != None:
-            if self.pos[0] < 2:
-                v.availableTiles.add(self)
+            if v.dragCard.tile == None:
+                if self.pos[0] < 2:
+                    v.availableTiles.add(self)
+            else:
+                if abs(v.dragCard.tile.pos[0] - self.pos[0]) <= 1:
+                    v.availableTiles.add(self)
+                
+        if v.availableTiles != None:
+            if not self in v.availableTiles:
+                self.hovered = False
+        
+        
+                
+        if self.hovered:
+            self.rimage = self.image.copy()
+            self.rimage.fill((255, 255, 255, 200))
+        else:
+            self.rimage = self.image
         
         self.draw()
             
@@ -84,6 +101,7 @@ class card:
         
 class gameCard(py.sprite.Sprite):
     def __init__(self, cardClass, order):
+        super().__init__()
         self.card = cardClass
         self.order = order
         self.size = (770, 1105)
@@ -133,9 +151,17 @@ class gameCard(py.sprite.Sprite):
         
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
+        
+        self.arrow = py.image.load("assets/images/arrow.png")
+        self.arrow = py.transform.scale(self.arrow, (100, 100))
+        
+        self.rarrow = None
     
     def draw(self):
+        if self.rarrow != None:
+            v.screen.blit(self.rarrow, self.arrowRect)
         v.screen.blit(self.rimage, self.rect)
+        
     
     def update(self):
         if self.rect.collidepoint(v.mouse_pos):
@@ -153,9 +179,11 @@ class gameCard(py.sprite.Sprite):
                 if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
                     self.drag = False
                     v.dragCard = None
-                    for tile in v.tiles:
-                        if tile.hovered:
-                            self.tile = tile
+                    v.availableTiles = None
+                    if self.tile == None:
+                        for tile in v.tiles:
+                            if tile.hovered:
+                                self.tile = tile
                             
             
         if self.tile == None:
@@ -174,27 +202,36 @@ class gameCard(py.sprite.Sprite):
             self.rimage = py.transform.scale(self.image, self.rect.size)
             self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
         else:
-            self.rect = py.Rect((0, 0), (125, 175))
+            self.rect = py.Rect((0, 0), (100, 140))
             self.rimage = py.transform.scale(self.image, self.rect.size)
             self.rect.center = self.tile.rect.center
         
-        if self.drag:
-            print(self.dragPoint)
+        if self.drag and self.tile == None:
             self.rect.x = v.mouse_pos[0] - self.dragPoint[0]
             self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
-            
-        """self.rect = py.Rect((0, 0), (155, 220))
-        self.rect.center = (415 + self.order * 20, 630)
-        if self.rect.collidepoint(v.mouse_pos):
-            if self.firstChange:
-                self.firstChange = False
-                self.image = py.transform.scale(self.image, (self.size[0]*2, self.size[1]*2))
-                print(self.rect)
-                self.rect = py.Rect(self.rect.x - self.rect.width, 
-                                    self.rect.y - self.rect.height,
-                                    self.rect.width * 2,
-                                    self.rect.height * 2)
-                print(self.rect)"""
+        
+        if self.drag and self.tile != None:
+            if v.hoverTile != None and v.hoverTile != self.tile:
+                self.arrowRect = py.Rect(0, 0, 100, 100)
+                if v.hoverTile.pos[0] > self.tile.pos[0]:
+                    self.arrowRect.centery = self.tile.rect.centery
+                    self.arrowRect.left = self.tile.rect.centerx + 50
+                    self.rarrow = self.arrow.copy()
+                if v.hoverTile.pos[0] < self.tile.pos[0]:
+                    self.arrowRect.centery = self.tile.rect.centery
+                    self.arrowRect.right = self.tile.rect.centerx - 50
+                    self.rarrow = py.transform.rotate(self.arrow, 180)
+                if v.hoverTile.pos[1] > self.tile.pos[1]:
+                    self.arrowRect.centerx = self.tile.rect.centerx
+                    self.arrowRect.top = self.tile.rect.centery + 50
+                    self.rarrow = py.transform.rotate(self.arrow, -90)
+                if v.hoverTile.pos[1] < self.tile.pos[1]:
+                    self.arrowRect.centerx = self.tile.rect.centerx
+                    self.arrowRect.bottom = self.tile.rect.centery - 50
+                    self.rarrow = py.transform.rotate(self.arrow, 90)
+                
+            if v.hoverTile == self.tile:
+                self.rarrow = None
         self.draw()
         
 class fps(py.sprite.Sprite):
