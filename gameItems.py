@@ -51,9 +51,16 @@ class tile(py.sprite.Sprite):
         self.image = py.transform.scale(self.image, (size, size))
         self.image.blit(self.border, (0, 0))
         self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
+
+        self.hovered = False
     
     def update(self):
         v.screen.blit(self.image, self.rect)
+        if self.rect.collidepoint(v.mouse_pos):
+            self.hovered = True
+        else:
+            self.hovered = False
+            
 
 class card:
     def __init__(self, name, attack, health, speed, description, type, cost):
@@ -112,6 +119,7 @@ class gameCard(py.sprite.Sprite):
         self.drag = False
         self.cycle = 0
         self.dragPoint = (0, 0)
+        self.tile = None
         
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
@@ -127,24 +135,33 @@ class gameCard(py.sprite.Sprite):
                 if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
                     self.drag = True
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+                if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
+                    self.drag = False
+                    for tile in v.tiles:
+                        if tile.hovered:
+                            self.tile = tile
+                            
             
-        
-        if self.cycle < 30 and self.hovered:
-            self.cycle += 4
-        if self.cycle > 0 and not self.hovered:
-            self.cycle -= 4  
-        if self.cycle >= 30:
-            self.cycle = 30
-        if self.cycle <= 0:
-            self.cycle = 0
-        
-        sMod = 1 + self.cycle/60
-        
-        
-        
-        self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
-        image = py.transform.scale(self.image, self.rect.size)
-        self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
+        if self.tile == None:
+            if self.cycle < 30 and self.hovered:
+                self.cycle += 4
+            if self.cycle > 0 and not self.hovered:
+                self.cycle -= 4  
+            if self.cycle >= 30:
+                self.cycle = 30
+            if self.cycle <= 0:
+                self.cycle = 0
+            
+            sMod = 1 + self.cycle/60
+            
+            self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
+            image = py.transform.scale(self.image, self.rect.size)
+            self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
+        else:
+            self.drag = False
+            self.rect = py.Rect((0, 0), (125, 175))
+            image = py.transform.scale(self.image, self.rect.size)
+            self.rect.center = self.tile.rect.center
         
         if self.drag:
             print(self.dragPoint)
