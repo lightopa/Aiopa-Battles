@@ -131,6 +131,7 @@ def game():
     coinScreen = guiItems.coinScreen()
     v.pause = True
     v.pauseType = "coin"
+    
     while True:
         py.event.pump()
         v.events = []
