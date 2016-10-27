@@ -27,9 +27,7 @@ def queue(loadObj):
         key = random.random()
         payload = {"key": key}
         jpayload = json.dumps(str(payload))
-        print("start")
         r = requests.post(v.server + "connect/", data=jpayload)
-        print("end")
         data = ast.literal_eval(r.text)
         if data["key"] == key:
             v.unid = data["unid"]
@@ -51,6 +49,30 @@ def checkQueue():
             return
         if v.networkHalt == True:
             return
+
+def gameLoop():
+    def _gameLoop():
+        payload = {"unid": v.unid, "game": v.game}
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "game_loop/", data=jpayload)
+        data = ast.literal_eval(r.text)
+    
+    if v.serverConnected:
+        t3 = threading.Thread(target=_gameLoop)
+        t3.start()
+        
+        
+def gameJoin():
+    def _gameJoin():
+        payload = {"unid": v.unid, "game": v.game} #also push name
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "game_start/", data=jpayload)
+        data = ast.literal_eval(r.text)
+        v.gameStarter = data["starter"]
+        v.gameTurn = data["turn"]
+        print(v.gameStarter, v.gameTurn)
+    t2 = threading.Thread(target=_gameJoin)
+    t2.start()
 
 def getCards():
     print(v.server + "get_cards/")

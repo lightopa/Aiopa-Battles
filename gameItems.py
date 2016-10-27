@@ -55,6 +55,7 @@ class tile(py.sprite.Sprite):
         self.hovered = False
         
         self.pos = pos
+        self.rimage = self.image
     
     def draw(self):
         v.screen.blit(self.rimage, self.rect)
@@ -62,7 +63,6 @@ class tile(py.sprite.Sprite):
     def update(self):
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
-            v.hoverTile = self
         else:
             self.hovered = False
         
@@ -71,8 +71,9 @@ class tile(py.sprite.Sprite):
                 if self.pos[0] < 2:
                     v.availableTiles.add(self)
             else:
-                if abs(v.dragCard.tile.pos[0] - self.pos[0]) <= 1:
+                if (abs(v.dragCard.tile.pos[0] - self.pos[0]) == 1 and v.dragCard.tile.pos[1] == self.pos[1]) or (abs(v.dragCard.tile.pos[1] - self.pos[1]) == 1 and v.dragCard.tile.pos[0] == self.pos[0]):
                     v.availableTiles.add(self)
+                    
                 
         if v.availableTiles != None:
             if not self in v.availableTiles:
@@ -81,6 +82,7 @@ class tile(py.sprite.Sprite):
         
                 
         if self.hovered:
+            v.hoverTile = self
             self.rimage = self.image.copy()
             self.rimage.fill((255, 255, 255, 200))
         else:
@@ -117,6 +119,9 @@ class gameCard(py.sprite.Sprite):
         render = font.render(self.card.name, 1, (0, 0, 0))
         self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 90 - render.get_rect().height/2))
         
+        render = font.render(str(self.card.cost), 1, (0, 0, 0))
+        self.image.blit(render, (85 - render.get_rect().size[0]/2, 85 - render.get_rect().size[1]/2))
+        
         font = py.font.Font("assets/fonts/Galdeano.ttf", 80)
         render = font.render(str(self.card.attack), 1, (0, 0, 0))
         self.image.blit(render, (165 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
@@ -126,6 +131,8 @@ class gameCard(py.sprite.Sprite):
         
         render = font.render(str(self.card.health), 1, (0, 0, 0))
         self.image.blit(render, (610 - render.get_rect().size[0]/2, 590 - render.get_rect().size[1]/2))
+        
+        
         
         #description
         words = self.card.description.split(" ")
@@ -151,11 +158,13 @@ class gameCard(py.sprite.Sprite):
         
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
-        
+                
         self.arrow = py.image.load("assets/images/arrow.png")
         self.arrow = py.transform.scale(self.arrow, (100, 100))
         
         self.rarrow = None
+        
+        self.update()
     
     def draw(self):
         if self.rarrow != None:
@@ -169,22 +178,26 @@ class gameCard(py.sprite.Sprite):
         else:
             self.hovered = False
         
-        if self.hovered:
-            for event in v.events:
-                if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
-                    self.drag = True
-                    self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
-                    v.dragCard = self
-                    v.availableTiles = py.sprite.Group()
-                if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
-                    self.drag = False
-                    v.dragCard = None
-                    v.availableTiles = None
-                    if self.tile == None:
-                        for tile in v.tiles:
-                            if tile.hovered:
-                                self.tile = tile
-                            
+        for event in v.events:
+            if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                self.drag = True
+                self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+                v.dragCard = self
+                v.availableTiles = py.sprite.Group()
+            if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
+                self.drag = False
+                v.dragCard = None
+                v.availableTiles = None
+                self.rarrow = None
+                if self.tile == None:
+                    for tile in v.tiles:
+                        if tile.hovered:
+                            self.tile = tile
+                else:
+                    if v.hoverTile == None:
+                        pass
+                    else:
+                        self.tile = v.hoverTile
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:
@@ -211,7 +224,7 @@ class gameCard(py.sprite.Sprite):
             self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
         
         if self.drag and self.tile != None:
-            if v.hoverTile != None and v.hoverTile != self.tile:
+            if v.hoverTile != None and v.hoverTile != self.tile and v.hoverTile != None:
                 self.arrowRect = py.Rect(0, 0, 100, 100)
                 if v.hoverTile.pos[0] > self.tile.pos[0]:
                     self.arrowRect.centery = self.tile.rect.centery
@@ -231,6 +244,8 @@ class gameCard(py.sprite.Sprite):
                     self.rarrow = py.transform.rotate(self.arrow, 90)
                 
             if v.hoverTile == self.tile:
+                self.rarrow = None
+            if v.hoverTile == None:
                 self.rarrow = None
         self.draw()
         
@@ -259,30 +274,8 @@ class castle(py.sprite.Sprite):
             self.image.fill((255, 0, 0), special_flags=py.BLEND_MULT)
         
     
-    def update(self):
-        v.screen.blit(self.image, self.rect)
-        
-class blackFade(py.sprite.Sprite):
-    def __init__(self, limit=255, rate=6):
-        self.limit = limit
-        self.rate = 6
-        self.image = py.Surface((1280, 720))
-        self.image.fill((0, 0, 0))
-        self.alpha = 0
     def draw(self):
-        self.image.set_alpha(self.alpha)
-        v.screen.blit(self.image, (0, 0))
+        v.screen.blit(self.image, self.rect)
     
-    def fadeIn(self):
-        if self.alpha <= self.limit:
-            self.alpha += self.rate
-        if self.alpha > self.limit:
-            self.alpha = self.limit
-        self.draw()
-    def fadeOut(self):
-        if self.alpha > 0:
-            self.alpha -= self.rate
-        if self.alpha < 0:
-            self.alpha = 0
-        self.draw()
-        
+    def update(self):
+        v.screen.blit(self.image, self.rect) 

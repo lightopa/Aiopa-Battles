@@ -3,6 +3,7 @@ import variables as v
 import menuItems
 import network
 import gameItems
+import guiItems
 
 def boot():
     py.init()
@@ -83,7 +84,6 @@ def queue():
     
     network.queue(loading)
     while True:
-        print("loop")
         py.event.pump()
         v.events = []
         v.events = py.event.get()
@@ -96,6 +96,7 @@ def queue():
                 if loading.text[-4:] == "....":
                     loading.text = loading.text[:-4]
         if v.game != None:
+            v.serverConnected = True
             game()
             
         skip.update()
@@ -108,43 +109,59 @@ def queue():
         
 def game():
     network.getCards()
+    network.gameJoin()
+    #network.gameLoop()
     background = py.image.load("assets/images/paper.png")
     background = py.transform.scale(background, (1280, 720))
     v.tiles = py.sprite.Group()
     for y in range(0, 3):
         for x in range(0, 4):
             v.tiles.add(gameItems.tile((x, y), "board"))
-            print(x)
     
-    c = gameItems.gameCard(v.cards[list(v.cards)[0]], 0)
+    v.gameCards = py.sprite.Group() 
+    v.gameCards.add(gameItems.gameCard(v.cards[list(v.cards)[0]], 0))
     
     fps = gameItems.fps()
     
     castles = py.sprite.Group()
     castles.add(gameItems.castle(True))
     castles.add(gameItems.castle(False))
-    fade = gameItems.blackFade(100, 10)
+    fade = guiItems.blackFade(100, 10)
+    
+    coinScreen = guiItems.coinScreen()
+    v.pause = True
+    v.pauseType = "coin"
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
         v.hoverTile = None
-        v.screen.fill((255, 255, 255))
         v.screen.blit(background, (0, 0))
         
-        v.tiles.update()
-        c.update()
-        castles.update()
-        
-        if v.dragCard != None:
-            fade.fadeIn()
-            for tile in v.availableTiles:
-                tile.draw()
-            v.dragCard.draw()
+        if not v.pause:
+            v.tiles.update()
+            v.gameCards.update()
+            castles.update()
             
-        else:
-            fade.fadeOut()
+            if v.dragCard != None:
+                fade.fadeIn()
+                for tile in v.availableTiles:
+                    tile.draw()
+                v.dragCard.draw()
+                
+            else:
+                fade.fadeOut()
+            
+        if v.pause:
+            for s in v.tiles:
+                s.draw()
+            for s in v.gameCards:
+                s.draw()
+            for s in castles:
+                s.draw()
+            if v.pauseType == "coin":
+                coinScreen.update()
         
         fps.update()
         refresh()
