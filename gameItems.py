@@ -1,6 +1,7 @@
 import pygame as py
 import variables as v
 import random
+from renderer import *
 
 class SpriteSheet(object):
     """ Class used to grab images out of a sprite sheet. """
@@ -58,7 +59,7 @@ class tile(py.sprite.Sprite):
         self.rimage = self.image
     
     def draw(self):
-        v.screen.blit(self.rimage, self.rect)
+        change(v.screen.blit(self.rimage, self.rect))
     
     def update(self):
         if self.rect.collidepoint(v.mouse_pos):
@@ -108,10 +109,10 @@ class gameCard(py.sprite.Sprite):
         self.order = order
         self.size = (770, 1105)
         self.image = py.Surface(self.size)
-        icon = py.image.load("assets/images/cards/" + cardClass.name + ".png")
+        icon = py.image.load("assets/images/cards/" + cardClass.name + ".png").convert()
         #icon = py.transform.scale(icon, (97, 63))
         self.image.blit(icon, (80, 170)) #13 28
-        self.blank = py.image.load("assets/images/cards/blank_minion.png")
+        self.blank = py.image.load("assets/images/cards/blank_minion.png").convert_alpha()
         #self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
         self.image.blit(self.blank, (0, 0))
         
@@ -159,7 +160,7 @@ class gameCard(py.sprite.Sprite):
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
                 
-        self.arrow = py.image.load("assets/images/arrow.png")
+        self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
         self.arrow = py.transform.scale(self.arrow, (100, 100))
         
         self.rarrow = None
@@ -168,11 +169,12 @@ class gameCard(py.sprite.Sprite):
     
     def draw(self):
         if self.rarrow != None:
-            v.screen.blit(self.rarrow, self.arrowRect)
-        v.screen.blit(self.rimage, self.rect)
+            change(v.screen.blit(self.rarrow, self.arrowRect))
+        change(v.screen.blit(self.rimage, self.rect))
         
     
     def update(self):
+        change(self.rect)
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
         else:
@@ -248,16 +250,6 @@ class gameCard(py.sprite.Sprite):
             if v.hoverTile == None:
                 self.rarrow = None
         self.draw()
-        
-class fps(py.sprite.Sprite):
-    
-    def __init__(self):
-        super().__init__()
-        self.pos = (640, 20)
-        self.font = py.font.Font(None, int(30))
-    def update(self):
-        self.label = self.font.render(str(int(v.clock.get_fps())), 1, (255, 0, 0))
-        v.screen.blit(self.label, self.pos)
 
 class castle(py.sprite.Sprite):
     
@@ -265,7 +257,7 @@ class castle(py.sprite.Sprite):
         super().__init__()
         self.friendly = friendly
         self.rect = py.Rect(0, 0, 300, 300)
-        self.image = py.image.load("assets/images/castle.png")
+        self.image = py.image.load("assets/images/castle.png").convert_alpha()
         self.image = py.transform.scale(self.image, self.rect.size)
         if self.friendly:
             self.rect.center = (180, 280)
@@ -275,7 +267,7 @@ class castle(py.sprite.Sprite):
         
     
     def draw(self):
-        v.screen.blit(self.image, self.rect)
+        change(v.screen.blit(self.image, self.rect))
     
     def update(self):
         v.screen.blit(self.image, self.rect) 

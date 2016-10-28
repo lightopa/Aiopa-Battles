@@ -1,5 +1,6 @@
 import pygame as py
 import variables as v
+from renderer import *
 
 class Button(py.sprite.Sprite):
 
@@ -21,13 +22,13 @@ class Button(py.sprite.Sprite):
         self.set_rect()
     
     def update(self):
+        self.hovered = self.rect.collidepoint(v.mouse_pos)
         if self.hovered:
             colour = self.hcolour
         else:
             colour = self.ncolour
-        py.draw.rect(v.screen, colour, self.rect)
+        change(py.draw.rect(v.screen, colour, self.rect))
         v.screen.blit(self.rend, self.rect)
-        self.hovered = self.rect.collidepoint(v.mouse_pos)
 
     def set_rect(self):
         self.rect = self.rend.get_rect()
@@ -72,4 +73,4 @@ class Text(py.sprite.Sprite):
             pos[0] -= font.size(self.text)[0] / 2
             pos[1] -= font.size(self.text)[1] / 2
             pos = tuple(pos)
-        v.screen.blit(label, pos)
+        change(v.screen.blit(label, pos))

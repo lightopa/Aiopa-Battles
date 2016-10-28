@@ -2,6 +2,7 @@ import pygame as py
 import variables as v
 import menuItems
 import gameItems
+from renderer import *
 
 class blackFade(py.sprite.Sprite):
     def __init__(self, limit=255, rate=6, gradient=False):
@@ -18,18 +19,31 @@ class blackFade(py.sprite.Sprite):
         v.screen.blit(self.image, (0, 0))
     
     def fadeIn(self):
-        if self.alpha <= self.limit:
+        if self.alpha < self.limit:
             self.alpha += self.rate
+            change(py.Rect(0, 0, 1280, 720))
         if self.alpha > self.limit:
             self.alpha = self.limit
         self.draw()
     def fadeOut(self):
         if self.alpha > 0:
             self.alpha -= self.rate
+            change(py.Rect(0, 0, 1280, 720))
         if self.alpha < 0:
             self.alpha = 0
         self.draw()
+
+
+class fps(py.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.pos = (640, 20)
+        self.font = py.font.Font(None, int(30))
+    def update(self):
+        self.label = self.font.render(str(round(v.clock.get_fps())), 1, (255, 0, 0))
+        change(v.screen.blit(self.label, self.pos))
         
+      
 class coinScreen(py.sprite.Sprite):
     def __init__(self):
         self.black = blackFade(230, 8, True)
@@ -73,7 +87,7 @@ class coinScreen(py.sprite.Sprite):
             self.coinIndex += 0.5 - (self.coinSlow / 60)
             self.coinWait += 1
         ci = py.transform.scale(self.coinImages[int(self.coinIndex)], (150, 150))
-        v.screen.blit(ci, (640 - ci.get_rect().width/2, 180 - ci.get_rect().height/2))
+        
         
         if v.gameStarter != None and self.coinWait >= 75:
             if self.coinSlow < 25:
@@ -81,11 +95,12 @@ class coinScreen(py.sprite.Sprite):
         if self.coinSlow >= 25 and int(self.coinIndex) == ti:
             self._joined()
         
-        
+        if self.state == "in":
+            change(v.screen.blit(ci, (640 - ci.get_rect().width/2, 180 - ci.get_rect().height/2)))
         if self.joined and self.state == "in":
-            v.screen.blit(self.text, (640 - self.text.get_rect().width/2, 300 - self.text.get_rect().height/2))
+            change(v.screen.blit(self.text, (640 - self.text.get_rect().width/2, 300 - self.text.get_rect().height/2)))
             if self.miniText != None:
-                v.screen.blit(self.miniText, (640 - self.miniText.get_rect().width/2, 350 - self.miniText.get_rect().height/2))
+                change(v.screen.blit(self.miniText, (640 - self.miniText.get_rect().width/2, 350 - self.miniText.get_rect().height/2)))
                 
             self.button.update()
             if self.button.pressed():

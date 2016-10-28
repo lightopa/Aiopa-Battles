@@ -9,6 +9,7 @@ events = []
 fullscreen = False
 pause = False
 pauseType = None
+changes = []
 
 cards = {}
 tiles = None
