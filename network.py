@@ -13,6 +13,7 @@ import threading
 import gameItems
 
 def localServerCheck():
+    """Will check if a local debug server is running, and if not, will default to the online server"""
     try:
         r = requests.get("http://127.0.0.1:5000/check")
         if r.text != "online":
@@ -22,6 +23,11 @@ def localServerCheck():
 
 
 def queue(loadObj):
+    """Will add the user to the online queue.
+    
+    Args:
+        loadObj (menuItems.Text): The text object that reflects the current queue state.
+    """
     localServerCheck()
     def _queue():
         key = random.random()
@@ -39,6 +45,7 @@ def queue(loadObj):
 
 
 def checkQueue():
+    """Will continuously connect to the server and check if a game has been found"""
     while True:
         payload = {"unid": v.unid}
         jpayload = json.dumps(str(payload))
@@ -63,6 +70,7 @@ def gameLoop():
         
         
 def gameJoin():
+    """Will confirm the client's connection to the game server, and receive which player will begin"""
     def _gameJoin():
         payload = {"unid": v.unid, "game": v.game} #also push name
         jpayload = json.dumps(str(payload))
@@ -75,6 +83,7 @@ def gameJoin():
     t2.start()
 
 def getCards():
+    """Will connect to the server and download the list of cards"""
     print(v.server + "get_cards/")
     r = requests.get(v.server + "get_cards/")
     data = ast.literal_eval(r.text)

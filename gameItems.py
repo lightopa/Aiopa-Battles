@@ -3,14 +3,15 @@ import variables as v
 import random
 from renderer import *
 
-class SpriteSheet(object):
-    """ Class used to grab images out of a sprite sheet. """
-    # This points to our sprite sheet image
-    sprite_sheet = None
-    images = None
-
+class SpriteSheet():
     def __init__(self, file_name, rows, columns):
-        """ Constructor. Pass in the file name of the sprite sheet. """
+        """Takes an image and splits it into multiple images.
+        
+        Args:
+            file_name (str/pygame.Surface): The image to split.
+            rows (int): The number of rows the sprite sheet has.
+            columns (int(: The number of columns the sprite sheet has.
+        """
 
         self.rows = rows
         self.columns = columns
@@ -23,6 +24,7 @@ class SpriteSheet(object):
         self.getGrid()
 
     def getGrid(self):
+        """Generates a list of images from the sprite sheet"""
         width = self.sprite_sheet.get_size()[0] / self.columns
         height = self.sprite_sheet.get_size()[1] / self.rows
         all = []
@@ -35,6 +37,14 @@ class SpriteSheet(object):
         
 class tile(py.sprite.Sprite):
     def __init__(self, pos, style):
+        """Creates a single game tile.
+        
+        Tiles are arranged in a grid, and can have cards placed on them.
+        
+        Args:
+            pos x,y ((int, int)): The tile number in the x and y directions.
+            style (str): The style id to use.
+        """
         super().__init__()
         sheet = SpriteSheet("assets/images/tiles.png", 6, 5)
         size = 150
@@ -94,6 +104,17 @@ class tile(py.sprite.Sprite):
 
 class card:
     def __init__(self, name, attack, health, speed, description, type, cost):
+        """A container for information about a single card.
+        
+        Args:
+            name (str): The card's name.
+            attack (int): The card's attack.
+            health (int): The card's health.
+            speed (int): The card's speed.
+            description (str): A description of the card's function.
+            type (str): What type of card this is.
+            cost (int): The mana cost of the card.
+        """
         self.name = name
         self.attack = attack
         self.health = health
@@ -104,6 +125,12 @@ class card:
         
 class gameCard(py.sprite.Sprite):
     def __init__(self, cardClass, order):
+        """A card that can be placed in the game.
+        
+        Args:
+            cardClass (card): The card class that this object will represent.
+            order (int): The position of this card in the player's hand.
+        """
         super().__init__()
         self.card = cardClass
         self.order = order
@@ -254,6 +281,11 @@ class gameCard(py.sprite.Sprite):
 class castle(py.sprite.Sprite):
     
     def __init__(self, friendly):
+        """A castle image.
+        
+        Args:
+            friendly (bool): Whether this is the player's or the opponent's castle.
+        """
         super().__init__()
         self.friendly = friendly
         self.rect = py.Rect(0, 0, 300, 300)
@@ -270,4 +302,4 @@ class castle(py.sprite.Sprite):
         change(v.screen.blit(self.image, self.rect))
     
     def update(self):
-        v.screen.blit(self.image, self.rect) 
+        self.draw()

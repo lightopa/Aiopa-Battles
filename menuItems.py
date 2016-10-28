@@ -5,6 +5,19 @@ from renderer import *
 class Button(py.sprite.Sprite):
 
     def __init__(self, text, pos, size, normalcolour, hovercolour, font, ID, centred = False, bsize=(0,0)):
+        """A simple button.
+        
+        Args:
+            text (str): The button text to display.
+            pos x,y ((int, int)): The position of the button.
+            size (int): The font size of the text.
+            normalcolour r,g,b ((int, int, int)): The colour of the button normally.
+            hovercolour r,g,b ((int, int, int)): The colour of the button when hovered.
+            font (str): The text font file to load.
+            ID (str/int): A unique id to identify the button.
+            centred (bool): Whether or not the button is centred - default=False
+            bsize w,h ((int, int)): The width and height of the button - default=text
+        """
         super().__init__()
         self.ID = ID
         self.hovered = False
@@ -56,6 +69,16 @@ class Button(py.sprite.Sprite):
 class Text(py.sprite.Sprite):
     
     def __init__(self, text, pos, colour, font, size, centred = False):
+        """A simple text label.
+        
+        Args:
+            text (str): The text to display.
+            pos x,y ((int, int)): The position of the text.
+            colour r,g,b ((int, int, int)): The colour of the text.
+            font (str): The text font file to load.
+            size (int): The font size of the text.
+            centred (bool): Whether or not the text is centred - default=False
+        """
         super().__init__()
         self.text = text
         self.pos = pos

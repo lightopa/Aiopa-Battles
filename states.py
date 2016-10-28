@@ -8,6 +8,7 @@ import sys
 from renderer import *
 
 def boot():
+    """Sets up the game and starts the mainMenu state"""
     py.init()
     v.display = py.display.set_mode((640, 360))
     v.screen = py.Surface((1280, 720))
@@ -15,6 +16,7 @@ def boot():
     mainMenu()
 
 def mainMenu():
+    """The main menu state"""
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Play", (640, 360), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "play", centred=True))
     
@@ -39,6 +41,7 @@ def mainMenu():
 
 
 def queue():
+    """The queue state"""
     loading = menuItems.Text("Joining Queue", (640, 360), (150, 50, 50), "assets/fonts/Galdeano.ttf", 80, centred=True)
     v.screen.fill((50, 100, 200))
     loading.update()
@@ -74,6 +77,7 @@ def queue():
         refresh()
         
 def game():
+    """The game state"""
     network.getCards()
     network.gameJoin()
     #network.gameLoop()

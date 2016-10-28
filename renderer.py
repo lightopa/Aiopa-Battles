@@ -2,9 +2,15 @@ import variables as v
 import pygame as py
 
 def change(rect):
+    """Adds a rect to the changes list.
+    
+    Args:
+        rect (pygame.Rect): The rect to add to the changes list
+    """
     v.changes.append(rect)
     
 def refresh():
+    """Updates the display"""
     for event in v.events:
         if event.type == py.KEYDOWN:
             if event.key == py.K_F11:

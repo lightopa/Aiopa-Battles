@@ -6,6 +6,14 @@ from renderer import *
 
 class blackFade(py.sprite.Sprite):
     def __init__(self, limit=255, rate=6, gradient=False):
+        """A class that will fade the screen.
+        
+        Args:
+            limit (int): The maximum opacity of the mask - default=255
+            rate (int): The rate at which opacity will change - default=6
+            gradient (bool): Whether or not to use a white to black radial gradient - default=False
+        """
+        super().__init__()
         self.limit = limit
         self.rate = 6
         if gradient == False:
@@ -36,6 +44,7 @@ class blackFade(py.sprite.Sprite):
 
 class fps(py.sprite.Sprite):
     def __init__(self):
+        """An FPS counter at the top of the screen"""
         super().__init__()
         self.pos = (640, 20)
         self.font = py.font.Font(None, int(30))
@@ -46,6 +55,8 @@ class fps(py.sprite.Sprite):
       
 class coinScreen(py.sprite.Sprite):
     def __init__(self):
+        """A screen displayed at the start of a game to show if the player is going first or second"""
+        super().__init__()
         self.black = blackFade(230, 8, True)
         self.joined = False
         self.coinImages = gameItems.SpriteSheet("assets/images/coin.png", 2, 6).images
