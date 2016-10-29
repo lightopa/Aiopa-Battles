@@ -91,7 +91,7 @@ def game():
     v.gameCards = py.sprite.Group() 
     v.gameCards.add(gameItems.gameCard(v.cards[list(v.cards)[0]], 0))
     
-    fps = guiItems.fps()
+    debug = guiItems.debug()
     
     castles = py.sprite.Group()
     castles.add(gameItems.castle(True))
@@ -101,6 +101,10 @@ def game():
     coinScreen = guiItems.coinScreen()
     v.pause = True
     v.pauseType = "coin"
+    
+    turnButton = menuItems.Button("End Turn", (1100, 630), 40, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "turn", centred=True, bsize=(150, 150))
+    
+    network.gameLoop()
     
     while True:
         py.event.pump()
@@ -118,6 +122,7 @@ def game():
             v.tiles.update()
             v.gameCards.update()
             castles.update()
+            turnButton.update()
             
             if v.dragCard != None:
                 fade.fadeIn()
@@ -127,6 +132,14 @@ def game():
                 
             else:
                 fade.fadeOut()
+                
+            if turnButton.pressed():
+                if v.gameTurn["player"] == v.unid:
+                    pass
+                    #network.updateGame()
+            
+            for event in v.networkChanges:
+                v.gameCards.add(gameItems.gameCard(event["card"], tile=event["tile"]))
             
         if v.pause:
             for s in v.tiles:
@@ -135,8 +148,9 @@ def game():
                 s.draw()
             for s in castles:
                 s.draw()
+            turnButton.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
         
-        fps.update()
+        debug.update()
         refresh()

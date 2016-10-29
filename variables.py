@@ -10,6 +10,8 @@ fullscreen = False
 pause = False
 pauseType = None
 changes = []
+networkEvents = []
+networkChanges = []
 
 cards = {}
 tiles = None

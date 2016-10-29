@@ -103,7 +103,7 @@ class tile(py.sprite.Sprite):
             
 
 class card:
-    def __init__(self, name, attack, health, speed, description, type, cost):
+    def __init__(self, name, attack, health, speed, description, type, cost, id):
         """A container for information about a single card.
         
         Args:
@@ -114,6 +114,7 @@ class card:
             description (str): A description of the card's function.
             type (str): What type of card this is.
             cost (int): The mana cost of the card.
+            id (str): The unique identifier for the card
         """
         self.name = name
         self.attack = attack
@@ -122,9 +123,10 @@ class card:
         self.description = description
         self.type = type
         self.cost = cost
+        self.id = id
         
 class gameCard(py.sprite.Sprite):
-    def __init__(self, cardClass, order):
+    def __init__(self, cardClass, order=0, tile=None):
         """A card that can be placed in the game.
         
         Args:
@@ -136,7 +138,7 @@ class gameCard(py.sprite.Sprite):
         self.order = order
         self.size = (770, 1105)
         self.image = py.Surface(self.size)
-        icon = py.image.load("assets/images/cards/" + cardClass.name + ".png").convert()
+        icon = py.image.load("assets/images/cards/" + cardClass.id + ".png").convert()
         #icon = py.transform.scale(icon, (97, 63))
         self.image.blit(icon, (80, 170)) #13 28
         self.blank = py.image.load("assets/images/cards/blank_minion.png").convert_alpha()
@@ -182,7 +184,7 @@ class gameCard(py.sprite.Sprite):
         self.drag = False
         self.cycle = 0
         self.dragPoint = (0, 0)
-        self.tile = None
+        self.tile = tile
         
         self.rect = py.Rect((0, 0), (155, 220))
         self.rect.center = (415 + self.order * 20, 630)
@@ -208,25 +210,28 @@ class gameCard(py.sprite.Sprite):
             self.hovered = False
         
         for event in v.events:
-            if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1:
-                self.drag = True
-                self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
-                v.dragCard = self
-                v.availableTiles = py.sprite.Group()
-            if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
-                self.drag = False
-                v.dragCard = None
-                v.availableTiles = None
-                self.rarrow = None
-                if self.tile == None:
-                    for tile in v.tiles:
-                        if tile.hovered:
-                            self.tile = tile
-                else:
-                    if v.hoverTile == None:
-                        pass
+            if v.gameTurn["player"] == v.unid:
+                if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                    self.drag = True
+                    self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+                    v.dragCard = self
+                    v.availableTiles = py.sprite.Group()
+                if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
+                    self.drag = False
+                    v.dragCard = None
+                    v.availableTiles = None
+                    self.rarrow = None
+                    if self.tile == None:
+                        for tile in v.tiles:
+                            if tile.hovered:
+                                self.tile = tile
+                        if self.tile != None:
+                            v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos})
                     else:
-                        self.tile = v.hoverTile
+                        if v.hoverTile == None:
+                            pass
+                        else:
+                            self.tile = v.hoverTile
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:

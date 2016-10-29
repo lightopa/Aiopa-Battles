@@ -59,16 +59,42 @@ def checkQueue():
 
 def gameLoop():
     def _gameLoop():
-        payload = {"unid": v.unid, "game": v.game}
+        while True:
+            if v.gameTurn["player"] == v.unid:
+                if len(v.networkEvents) > 0:
+                    print("event", v.networkEvents)
+                    payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
+                    v.networkEvents = []
+                    jpayload = json.dumps(str(payload))
+                    r = requests.post(v.server + "game_loop/", data=jpayload)
+                    #print(r.text)
+                    #data = ast.literal_eval(r.text)
+            else:
+                payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
+                jpayload = json.dumps(str(payload))
+                r = requests.post(v.server + "game_loop/", data=jpayload)
+                data = ast.literal_eval(r.text)
+                for event in data["events"]:
+                    if event["type"] == "place":
+                        pos = event["position"]
+                        for tile in v.tiles:
+                            if tile.pos == pos:
+                                target = tile
+                        card = v.cards[event["id"]]
+                        v.networkChanges.append({"card": card, "tile": target})
+    
+    t3 = threading.Thread(target=_gameLoop)
+    t3.start()
+
+"""def updateGame():
+    def _update():
+        payload = {"unid": v.unid, "game": v.game, "board"}
         jpayload = json.dumps(str(payload))
         r = requests.post(v.server + "game_loop/", data=jpayload)
-        data = ast.literal_eval(r.text)
-    
-    if v.serverConnected:
-        t3 = threading.Thread(target=_gameLoop)
-        t3.start()
-        
-        
+    t3 = threading.Thread(target=_gameJoin)
+    t3.start()"""
+
+
 def gameJoin():
     """Will confirm the client's connection to the game server, and receive which player will begin"""
     def _gameJoin():
@@ -88,12 +114,13 @@ def getCards():
     r = requests.get(v.server + "get_cards/")
     data = ast.literal_eval(r.text)
     for value in data["cards"]:
-        v.cards[value["name"]] = gameItems.card(name=value["name"], 
+        v.cards[value["id"]] = gameItems.card(name=value["name"], 
                                                 attack=value["attack"],
                                                 health=value["health"],
                                                 speed=value["speed"],
                                                 description=value["description"],
                                                 type=value["type"],
-                                                cost=value["cost"])
+                                                cost=value["cost"],
+                                                id=value["id"])
     print(v.cards)
     

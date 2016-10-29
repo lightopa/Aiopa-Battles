@@ -42,15 +42,18 @@ class blackFade(py.sprite.Sprite):
         self.draw()
 
 
-class fps(py.sprite.Sprite):
+class debug(py.sprite.Sprite):
     def __init__(self):
         """An FPS counter at the top of the screen"""
         super().__init__()
-        self.pos = (640, 20)
-        self.font = py.font.Font(None, int(30))
+        self.pos = (0, 0)
+        self.font = py.font.Font(None, int(20))
     def update(self):
-        self.label = self.font.render(str(round(v.clock.get_fps())), 1, (255, 0, 0))
-        change(v.screen.blit(self.label, self.pos))
+        self.label = self.font.render("fps: " + str(round(v.clock.get_fps())), 1, (100, 50, 50))
+        change(v.screen.blit(self.label, (self.pos[0], self.pos[1])))
+        
+        self.label = self.font.render("mouse position: " + str(v.mouse_pos), 1, (100, 50, 50))
+        change(v.screen.blit(self.label, (self.pos[0], self.pos[1] + 20)))
         
       
 class coinScreen(py.sprite.Sprite):

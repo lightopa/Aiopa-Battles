@@ -33,27 +33,33 @@ class Button(py.sprite.Sprite):
         self.size = bsize
         self.rend = self.font.render(self.text, True, (0,0,0))
         self.set_rect()
+        self.colour = self.ncolour
+    
+    def draw(self):
+        change(py.draw.rect(v.screen, self.colour, self.rect))
+        v.screen.blit(self.rend, self.textPos)
     
     def update(self):
         self.hovered = self.rect.collidepoint(v.mouse_pos)
         if self.hovered:
-            colour = self.hcolour
+            self.colour = self.hcolour
         else:
-            colour = self.ncolour
-        change(py.draw.rect(v.screen, colour, self.rect))
-        v.screen.blit(self.rend, self.rect)
+            self.colour = self.ncolour
+        self.draw()
 
     def set_rect(self):
         self.rect = self.rend.get_rect()
-        if not self.centred:
-            self.rect.topleft = self.pos
-        if self.centred:
-            self.rect.center = self.pos
-        
         if not self.size[0] == 0:
             self.rect.width = self.size[0]
         if not self.size[1] == 0:
             self.rect.height = self.size[1]
+            
+        if not self.centred:
+            self.rect.topleft = self.pos
+            self.textPos = self.pos
+        if self.centred:
+            self.rect.center = self.pos
+            self.textPos = (self.rect.centerx - self.rend.get_rect().width/2, self.rect.centery - self.rend.get_rect().height/2)
 
     def pressed(self):
         for event in v.events:
