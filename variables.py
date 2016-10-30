@@ -10,6 +10,7 @@ fullscreen = False
 pause = False
 pauseType = None
 changes = []
+oldChanges = []
 networkEvents = []
 networkChanges = []
 

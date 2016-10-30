@@ -7,6 +7,8 @@ def change(rect):
     Args:
         rect (pygame.Rect): The rect to add to the changes list
     """
+    if type(rect) != py.Rect:
+        raise TypeError(str(rect) + " is not a Rect object")
     v.changes.append(rect)
     
 def refresh():
@@ -43,6 +45,8 @@ def refresh():
             c.width /= 2
             c.height /= 2
     
+    changes = v.changes + v.oldChanges
+    v.oldChanges = v.changes
     if (v.windowWidth, v.windowHeight) != (1280, 720):
         scale = ((1280, 720)[0]/fit_to_rect[2], (1280, 720)[1]/fit_to_rect[3])
         x,y = py.mouse.get_pos()
@@ -51,8 +55,8 @@ def refresh():
         v.mouse_pos = py.mouse.get_pos()
     
     if py.key.get_pressed()[py.K_r]: # highlight updated areas
-        for c in v.changes:
+        for c in changes:
             py.draw.rect(v.display, (255, 0, 0), c, 3)
     
-    py.display.update(v.changes)
+    py.display.update(changes)
     v.changes = []
