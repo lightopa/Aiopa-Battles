@@ -92,6 +92,7 @@ def gameLoop():
                     if event["type"] == "turn":
                         v.gameTurn = event["turn"]
             #print("Network Time:", time.time() - netTime)
+            v.ping.append(time.time() - netTime)
             while time.time() - netTime < 0.3:
                 pass
     

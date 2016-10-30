@@ -13,6 +13,7 @@ changes = []
 oldChanges = []
 networkEvents = []
 networkChanges = []
+ping = [0]
 
 cards = {}
 tiles = None

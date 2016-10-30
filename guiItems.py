@@ -55,6 +55,9 @@ class debug(py.sprite.Sprite):
         self.label = self.font.render("mouse position: " + str(v.mouse_pos), 1, (100, 50, 50))
         change(v.screen.blit(self.label, (self.pos[0], self.pos[1] + 20)))
         
+        self.label = self.font.render("ping: " + str(round((sum(v.ping[-10:])/len(v.ping[-10:]))*1000)) + "ms", 1, (100, 50, 50))
+        change(v.screen.blit(self.label, (self.pos[0], self.pos[1] + 40)))
+        
       
 class coinScreen(py.sprite.Sprite):
     def __init__(self):
@@ -95,18 +98,17 @@ class coinScreen(py.sprite.Sprite):
             ti = 0
         else:
             ti = 6
-        if self.joined and self.coinSlow >= 20 and int(self.coinIndex) == ti:
+        if self.joined and self.coinSlow >= 15 and int(self.coinIndex) == ti:
             self.coinIndex = ti
         else:
             self.coinIndex += 0.5 - (self.coinSlow / 60)
             self.coinWait += 1
         ci = py.transform.scale(self.coinImages[int(self.coinIndex)], (150, 150))
         
-        
-        if v.gameStarter != None and self.coinWait >= 75:
-            if self.coinSlow < 25:
+        if v.gameStarter != None and self.coinWait >= 60:
+            if self.coinSlow < 15:
                 self.coinSlow += 1
-        if self.coinSlow >= 25 and int(self.coinIndex) == ti:
+        if self.coinSlow >= 15 and int(self.coinIndex) == ti and not self.joined:
             self._joined()
         
         if self.state == "in":
