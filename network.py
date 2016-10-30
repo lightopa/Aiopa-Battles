@@ -1,4 +1,5 @@
 import sys
+import time
 try:
     import requests
 except:
@@ -11,6 +12,8 @@ import variables as v
 import ast
 import threading
 import gameItems
+from profilehooks import profile
+from memory_profiler import profile as mprofile
 
 def localServerCheck():
     """Will check if a local debug server is running, and if not, will default to the online server"""
@@ -58,23 +61,30 @@ def checkQueue():
             return
 
 def gameLoop():
+    @mprofile
     def _gameLoop():
         while True:
-            if v.gameTurn["player"] == v.unid:
+            netTime = time.time()
+            if v.networkHalt == True:
+                return
+            if v.gameTurn != None:
+                #if v.gameTurn["player"] == v.unid:
                 if len(v.networkEvents) > 0:
-                    print("event", v.networkEvents)
+                    #print("update")
                     payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
+                    print("out events", v.networkEvents)
                     v.networkEvents = []
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
-                    #print(r.text)
-                    #data = ast.literal_eval(r.text)
-            else:
-                payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
-                jpayload = json.dumps(str(payload))
-                r = requests.post(v.server + "game_loop/", data=jpayload)
+                else:
+                    #print("fetch")
+                    payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
+                    jpayload = json.dumps(str(payload))
+                    r = requests.post(v.server + "game_loop/", data=jpayload)
+                
                 data = ast.literal_eval(r.text)
                 for event in data["events"]:
+                    print("event")
                     if event["type"] == "place":
                         pos = event["position"]
                         for tile in v.tiles:
@@ -82,6 +92,11 @@ def gameLoop():
                                 target = tile
                         card = v.cards[event["id"]]
                         v.networkChanges.append({"card": card, "tile": target})
+                    if event["type"] == "turn":
+                        v.gameTurn = event["turn"]
+            #print("Network Time:", time.time() - netTime)
+            while time.time() - netTime < 0.3:
+                pass
     
     t3 = threading.Thread(target=_gameLoop)
     t3.start()

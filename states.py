@@ -103,6 +103,7 @@ def game():
     v.pauseType = "coin"
     
     turnButton = menuItems.Button("End Turn", (1100, 630), 40, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "turn", centred=True, bsize=(150, 150))
+    turnText = menuItems.Text("", (1100, 530), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
     
     network.gameLoop()
     
@@ -116,6 +117,7 @@ def game():
         
         for event in v.events:
             if event.type == py.QUIT:
+                v.networkHalt = True
                 sys.exit()
         
         if not v.pause:
@@ -123,6 +125,7 @@ def game():
             v.gameCards.update()
             castles.update()
             turnButton.update()
+            turnText.update()
             
             if v.dragCard != None:
                 fade.fadeIn()
@@ -135,11 +138,18 @@ def game():
                 
             if turnButton.pressed():
                 if v.gameTurn["player"] == v.unid:
-                    pass
-                    #network.updateGame()
+                    v.networkEvents.append({"type": "turn"})
+                    v.gameTurn["player"] = None
+            
+            if v.gameTurn["player"] == v.unid:
+                turnText.text = "Your Turn"
+            else:
+                turnText.text = "Opponent's Turn"
             
             for event in v.networkChanges:
+                print("In Event", event)
                 v.gameCards.add(gameItems.gameCard(event["card"], tile=event["tile"]))
+            v.networkChanges = []
             
         if v.pause:
             for s in v.tiles:
@@ -149,6 +159,7 @@ def game():
             for s in castles:
                 s.draw()
             turnButton.draw()
+            turnText.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
         
