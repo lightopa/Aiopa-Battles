@@ -9,6 +9,7 @@ def change(rect):
     """
     if type(rect) != py.Rect:
         raise TypeError(str(rect) + " is not a Rect object")
+    rect = rect.copy().inflate(2, 2)
     v.changes.append(rect)
     
 def refresh():
