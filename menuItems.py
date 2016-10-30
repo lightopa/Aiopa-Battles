@@ -34,6 +34,7 @@ class Button(py.sprite.Sprite):
         self.rend = self.font.render(self.text, True, (0,0,0))
         self.set_rect()
         self.colour = self.ncolour
+        self.update()
     
     def draw(self):
         change(py.draw.rect(v.screen, self.colour, self.rect))
@@ -92,14 +93,18 @@ class Text(py.sprite.Sprite):
         self.font = font
         self.size = size
         self.centred = centred
+        self.update()
         
+    def draw(self):
+        change(v.screen.blit(self.label, self.rpos))
+    
     def update(self):
-        pos = self.pos
+        self.rpos = self.pos
         font = py.font.Font(self.font, self.size)
-        label = font.render(self.text, 1, self.colour)
+        self.label = font.render(self.text, 1, self.colour)
         if self.centred:
-            pos = list(self.pos)
-            pos[0] -= font.size(self.text)[0] / 2
-            pos[1] -= font.size(self.text)[1] / 2
-            pos = tuple(pos)
-        change(v.screen.blit(label, pos))
+            self.rpos = list(self.pos)
+            self.rpos[0] -= font.size(self.text)[0] / 2
+            self.rpos[1] -= font.size(self.text)[1] / 2
+            self.rpos = tuple(self.rpos)
+        self.draw()
