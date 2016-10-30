@@ -80,7 +80,6 @@ def game():
     """The game state"""
     network.getCards()
     network.gameJoin()
-    #network.gameLoop()
     background = py.image.load("assets/images/paper.png").convert()
     background = py.transform.scale(background, (1280, 720))
     v.tiles = py.sprite.Group()
@@ -132,6 +131,8 @@ def game():
                 for tile in v.availableTiles:
                     tile.draw()
                 v.dragCard.draw()
+            elif coinScreen.state == "out":
+                coinScreen.black.fadeOut()
                 
             else:
                 fade.fadeOut()
@@ -141,13 +142,13 @@ def game():
                     v.networkEvents.append({"type": "turn"})
                     v.gameTurn["player"] = None
             
+            
             if v.gameTurn["player"] == v.unid:
                 turnText.text = "Your Turn"
             else:
                 turnText.text = "Opponent's Turn"
             
             for event in v.networkChanges:
-                print("In Event", event)
                 v.gameCards.add(gameItems.gameCard(event["card"], tile=event["tile"]))
             v.networkChanges = []
             

@@ -121,6 +121,5 @@ class coinScreen(py.sprite.Sprite):
             self.button.update()
             if self.button.pressed():
                 self.state = "out"
-        if self.black.alpha <= 0:
-            v.pause = False
-            v.pauseType = None
+                v.pause = False
+                v.pauseType = None
