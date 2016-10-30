@@ -61,23 +61,20 @@ def checkQueue():
             return
 
 def gameLoop():
-    @mprofile
+    """Continuously checks the server for updates, and send any local updates to the server"""
     def _gameLoop():
         while True:
             netTime = time.time()
             if v.networkHalt == True:
                 return
             if v.gameTurn != None:
-                #if v.gameTurn["player"] == v.unid:
                 if len(v.networkEvents) > 0:
-                    #print("update")
                     payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
                     print("out events", v.networkEvents)
                     v.networkEvents = []
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
                 else:
-                    #print("fetch")
                     payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
@@ -100,15 +97,6 @@ def gameLoop():
     
     t3 = threading.Thread(target=_gameLoop)
     t3.start()
-
-"""def updateGame():
-    def _update():
-        payload = {"unid": v.unid, "game": v.game, "board"}
-        jpayload = json.dumps(str(payload))
-        r = requests.post(v.server + "game_loop/", data=jpayload)
-    t3 = threading.Thread(target=_gameJoin)
-    t3.start()"""
-
 
 def gameJoin():
     """Will confirm the client's connection to the game server, and receive which player will begin"""
