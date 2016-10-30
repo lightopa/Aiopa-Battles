@@ -1,6 +1,7 @@
 import cProfile
 import pstats
 import os
+import time
 
 import states
 
@@ -12,7 +13,7 @@ if __name__ == "__main__":
     
     cProfile.run("states.boot()", "logs/Out.txt")
     
-    with open("logs/Calltime Dump.txt", "w") as fc:
+    with open("logs/Calltime Dump " + time.strftime("%Y-%m-%d_%H.%M.%S") + ".txt", "w") as fc:
         p = pstats.Stats("logs/Out.txt", stream=fc)
         p.strip_dirs()
         d = p.__dict__["stats"]
