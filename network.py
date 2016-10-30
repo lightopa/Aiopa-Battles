@@ -70,7 +70,6 @@ def gameLoop():
             if v.gameTurn != None:
                 if len(v.networkEvents) > 0:
                     payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
-                    print("out events", v.networkEvents)
                     v.networkEvents = []
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
@@ -81,7 +80,6 @@ def gameLoop():
                 
                 data = ast.literal_eval(r.text)
                 for event in data["events"]:
-                    print("event")
                     if event["type"] == "place":
                         pos = event["position"]
                         for tile in v.tiles:
@@ -108,13 +106,11 @@ def gameJoin():
         data = ast.literal_eval(r.text)
         v.gameStarter = data["starter"]
         v.gameTurn = data["turn"]
-        print(v.gameStarter, v.gameTurn)
     t2 = threading.Thread(target=_gameJoin)
     t2.start()
 
 def getCards():
     """Will connect to the server and download the list of cards"""
-    print(v.server + "get_cards/")
     r = requests.get(v.server + "get_cards/")
     data = ast.literal_eval(r.text)
     for value in data["cards"]:
@@ -126,5 +122,4 @@ def getCards():
                                                 type=value["type"],
                                                 cost=value["cost"],
                                                 id=value["id"])
-    print(v.cards)
     
