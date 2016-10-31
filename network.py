@@ -12,8 +12,8 @@ import variables as v
 import ast
 import threading
 import gameItems
-from profilehooks import profile
-from memory_profiler import profile as mprofile
+#from profilehooks import profile
+#from memory_profiler import profile as mprofile
 
 def localServerCheck():
     """Will check if a local debug server is running, and if not, will default to the online server"""
