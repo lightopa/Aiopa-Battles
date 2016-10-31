@@ -82,16 +82,7 @@ def gameLoop():
                 else:
                     v.networkEvents = []
                     data = ast.literal_eval(r.text)
-                    for event in data["events"]:
-                        if event["type"] == "place":
-                            pos = event["position"]
-                            for tile in v.tiles:
-                                if tile.pos == pos:
-                                    target = tile
-                            card = v.cards[event["id"]]
-                            v.networkChanges.append({"card": card, "tile": target})
-                        if event["type"] == "turn":
-                            v.gameTurn = event["turn"]
+                    v.networkChanges.extend(data["events"])
             #print("Network Time:", time.time() - netTime)
             v.ping.append(time.time() - netTime)
             while time.time() - netTime < 0.3:
@@ -109,6 +100,7 @@ def gameJoin():
         data = ast.literal_eval(r.text)
         v.gameStarter = data["starter"]
         v.gameTurn = data["turn"]
+        v.opUnid = data["opponent"]
     t2 = threading.Thread(target=_gameJoin)
     t2.start()
 

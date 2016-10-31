@@ -149,7 +149,24 @@ def game():
                 turnText.text = "Opponent's Turn"
             
             for event in v.networkChanges:
-                v.gameCards.add(gameItems.gameCard(event["card"], tile=event["tile"]))
+                # TODO: Invert enemy positions
+                if event["type"] == "place":
+                    pos = event["position"]
+                    cunid = event["unid"]
+                    for tile in v.tiles:
+                        if tile.pos == pos:
+                            target = tile
+                    card = v.cards[event["id"]]
+                    v.gameCards.add(gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid))
+                if event["type"] == "move":
+                    for card in v.gameCards:
+                        if card.unid == event["unid"]:
+                            c = card
+                    for tile in v.tiles:
+                        if tile.pos == event["position"]:
+                            c.tile = tile
+                if event["type"] == "turn":
+                    v.gameTurn = event["turn"]
             v.networkChanges = []
             
         if v.pause:

@@ -126,7 +126,7 @@ class card:
         self.id = id
         
 class gameCard(py.sprite.Sprite):
-    def __init__(self, cardClass, order=0, tile=None):
+    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None):
         """A card that can be placed in the game.
         
         Args:
@@ -194,6 +194,16 @@ class gameCard(py.sprite.Sprite):
         
         self.rarrow = None
         
+        if unid == None:
+            self.unid = "c" + str(random.randint(0, 1000000000))
+        else:
+            self.unid = unid
+        
+        if player == None:
+            self.player = v.unid
+        else:
+            self.player = player
+        
         self.update()
     
     def draw(self):
@@ -211,7 +221,7 @@ class gameCard(py.sprite.Sprite):
         
         for event in v.events:
             if v.gameTurn["player"] == v.unid:
-                if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1 and self.player == v.unid:
                     self.drag = True
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
                     v.dragCard = self
@@ -226,12 +236,14 @@ class gameCard(py.sprite.Sprite):
                             if tile.hovered:
                                 self.tile = tile
                         if self.tile != None:
-                            v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos})
+                            v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos, "unid": self.unid})
+                            
                     else:
                         if v.hoverTile == None:
                             pass
                         else:
                             self.tile = v.hoverTile
+                            v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:
