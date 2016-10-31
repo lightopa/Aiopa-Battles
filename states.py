@@ -131,11 +131,11 @@ def game():
                 for tile in v.availableTiles:
                     tile.draw()
                 v.dragCard.draw()
-            elif coinScreen.state == "out":
-                coinScreen.black.fadeOut()
-                
             else:
                 fade.fadeOut()
+            
+            if coinScreen.state == "out":
+                coinScreen.black.fadeOut() 
                 
             if turnButton.pressed():
                 if v.gameTurn["player"] == v.unid:
