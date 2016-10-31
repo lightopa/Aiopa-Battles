@@ -77,7 +77,9 @@ def gameLoop():
                     payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
-                
+                if r.status_code != 200:
+                    print(r.status_code)
+                    print(r.text)
                 data = ast.literal_eval(r.text)
                 for event in data["events"]:
                     if event["type"] == "place":
