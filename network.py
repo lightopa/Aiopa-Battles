@@ -70,7 +70,6 @@ def gameLoop():
             if v.gameTurn != None:
                 if len(v.networkEvents) > 0:
                     payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
-                    v.networkEvents = []
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
                 else:
@@ -80,17 +79,19 @@ def gameLoop():
                 if r.status_code != 200:
                     print(r.status_code)
                     print(r.text)
-                data = ast.literal_eval(r.text)
-                for event in data["events"]:
-                    if event["type"] == "place":
-                        pos = event["position"]
-                        for tile in v.tiles:
-                            if tile.pos == pos:
-                                target = tile
-                        card = v.cards[event["id"]]
-                        v.networkChanges.append({"card": card, "tile": target})
-                    if event["type"] == "turn":
-                        v.gameTurn = event["turn"]
+                else:
+                    v.networkEvents = []
+                    data = ast.literal_eval(r.text)
+                    for event in data["events"]:
+                        if event["type"] == "place":
+                            pos = event["position"]
+                            for tile in v.tiles:
+                                if tile.pos == pos:
+                                    target = tile
+                            card = v.cards[event["id"]]
+                            v.networkChanges.append({"card": card, "tile": target})
+                        if event["type"] == "turn":
+                            v.gameTurn = event["turn"]
             #print("Network Time:", time.time() - netTime)
             v.ping.append(time.time() - netTime)
             while time.time() - netTime < 0.3:
