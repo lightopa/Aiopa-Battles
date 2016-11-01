@@ -6,11 +6,6 @@ import sys
 
 import states
 
-try:
-    import pygame
-except:
-    sys.path.append("lib")
-
 #states.boot()
 
 if __name__ == "__main__":
