@@ -68,8 +68,11 @@ def gameLoop():
             if v.networkHalt == True:
                 return
             if v.gameTurn != None:
+                sentEvents = []
                 if len(v.networkEvents) > 0:
-                    payload = {"unid": v.unid, "game": v.game, "type": "update", "events": v.networkEvents}
+                    #print("Out events", v.networkEvents)
+                    sentEvents = list(v.networkEvents)
+                    payload = {"unid": v.unid, "game": v.game, "type": "update", "events": sentEvents}
                     jpayload = json.dumps(str(payload))
                     r = requests.post(v.server + "game_loop/", data=jpayload)
                 else:
@@ -80,8 +83,10 @@ def gameLoop():
                     print(r.status_code)
                     print(r.text)
                 else:
-                    v.networkEvents = []
+                    v.networkEvents = [e for e in v.networkEvents if not e in sentEvents]
                     data = ast.literal_eval(r.text)
+                    #if data["events"] != []:
+                    #    print("In events", data["events"])
                     v.networkChanges.extend(data["events"])
             #print("Network Time:", time.time() - netTime)
             v.ping.append(time.time() - netTime)
