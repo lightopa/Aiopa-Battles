@@ -195,7 +195,8 @@ class gameCard(py.sprite.Sprite):
         self.rarrow = None
         
         if unid == None:
-            self.unid = "c" + str(random.randint(0, 1000000000))
+            self.unid = "c" + v.unid + v.cardUnid
+            v.cardUnid += 1
         else:
             self.unid = unid
         

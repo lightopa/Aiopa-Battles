@@ -14,7 +14,7 @@ oldChanges = []
 networkEvents = []
 networkChanges = []
 ping = [0]
-cardUnids = []
+cardUnid = 0
 
 cards = {}
 tiles = None
