@@ -2,8 +2,14 @@ import cProfile
 import pstats
 import os
 import time
+import sys
 
 import states
+
+try:
+    import pygame
+except:
+    sys.path.append("lib")
 
 #states.boot()
 
