@@ -152,6 +152,7 @@ def game():
                 # TODO: Invert enemy positions
                 if event["type"] == "place":
                     pos = event["position"]
+                    pos = (3 - pos[0], pos[1])
                     cunid = event["unid"]
                     for tile in v.tiles:
                         if tile.pos == pos:
@@ -159,11 +160,13 @@ def game():
                     card = v.cards[event["id"]]
                     v.gameCards.add(gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid))
                 if event["type"] == "move":
+                    pos = event["position"]
+                    pos = (5 - pos[0], pos[1])
                     for card in v.gameCards:
                         if card.unid == event["unid"]:
                             c = card
                     for tile in v.tiles:
-                        if tile.pos == event["position"]:
+                        if tile.pos == pos:
                             c.tile = tile
                 if event["type"] == "turn":
                     v.gameTurn = event["turn"]

@@ -221,7 +221,7 @@ class gameCard(py.sprite.Sprite):
             self.hovered = False
         
         for event in v.events:
-            if v.gameTurn["player"] == v.unid:
+            if v.gameTurn != None and v.gameTurn["player"] == v.unid:
                 if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1 and self.player == v.unid:
                     self.drag = True
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
