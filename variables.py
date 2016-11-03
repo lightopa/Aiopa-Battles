@@ -17,6 +17,7 @@ ping = [0]
 cardUnid = 0
 
 cards = {}
+deck = []
 tiles = None
 gameCards = None
 availableTiles = None

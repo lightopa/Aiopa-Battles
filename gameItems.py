@@ -187,7 +187,7 @@ class gameCard(py.sprite.Sprite):
         self.tile = tile
         
         self.rect = py.Rect((0, 0), (155, 220))
-        self.rect.center = (415 + self.order * 20, 630)
+        self.rect.center = (415 + self.order * (self.rect.width + 10), 630)
                 
         self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
         self.arrow = py.transform.scale(self.arrow, (100, 100))
@@ -260,7 +260,13 @@ class gameCard(py.sprite.Sprite):
             
             self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
             self.rimage = py.transform.scale(self.image, self.rect.size)
-            self.rect.center = (415 + self.order * 20, 710 - self.rect.size[1]/2)
+            self.rect.center = (415 + self.order * (125 + 10), 710 - self.rect.size[1]/2)
+            for card in v.gameCards:
+                if card.tile == None and card.cycle > 0:
+                    if card.order < self.order:
+                        self.rect.x += 62 * (1 + card.cycle/60) - 62
+                    if card.order > self.order:
+                        self.rect.x -= 62 * (1 + card.cycle/60) - 62
         else:
             self.rect = py.Rect((0, 0), (100, 140))
             self.rimage = py.transform.scale(self.image, self.rect.size)

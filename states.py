@@ -88,7 +88,10 @@ def game():
             v.tiles.add(gameItems.tile((x, y), "board"))
     
     v.gameCards = py.sprite.Group() 
-    v.gameCards.add(gameItems.gameCard(v.cards[list(v.cards)[0]], 0))
+    v.deck = list(v.cards.values())
+    for i in range(3):
+        v.gameCards.add(gameItems.gameCard(v.deck[i], i))
+    v.deck = v.deck[3:]
     
     debug = guiItems.debug()
     
