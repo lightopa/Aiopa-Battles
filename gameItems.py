@@ -238,6 +238,10 @@ class gameCard(py.sprite.Sprite):
                                 self.tile = tile
                         if self.tile != None:
                             v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos, "unid": self.unid})
+                            for card in v.gameCards:
+                                if card.tile == None:
+                                    if card.order > self.order:
+                                        card.order -= 1
                             
                     else:
                         if v.hoverTile == None:
