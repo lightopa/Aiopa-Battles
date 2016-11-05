@@ -68,6 +68,7 @@ class tile(py.sprite.Sprite):
         
         self.pos = pos
         self.rimage = self.image
+        self.attack = False
     
     def draw(self):
         change(v.screen.blit(self.rimage, self.rect))
@@ -78,26 +79,38 @@ class tile(py.sprite.Sprite):
         else:
             self.hovered = False
         
+        self.attack = False
+        
         if v.dragCard != None:
             if v.dragCard.tile == None:
                 if self.pos[0] < 2:
                     v.availableTiles.add(self)
             else:
-                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid())
+                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
+                a = False
+                for card in v.gameCards:
+                    if card.tile == self:
+                        if card.player == v.opUnid:
+                            a = True
+                            path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
                 if path != False and len(path) - 1 <= v.dragCard.card.speed:
                     v.availableTiles.add(self)
+                    if a:
+                        self.attack = True
+                    
                     
                 
         if v.availableTiles != None:
             if not self in v.availableTiles:
                 self.hovered = False
-        
-        
-                
+ 
         if self.hovered:
             v.hoverTile = self
             self.rimage = self.image.copy()
             self.rimage.fill((255, 255, 255, 200))
+        if self.attack:
+            self.rimage = self.image.copy()
+            self.rimage.fill((255, 0, 0, 200))
         else:
             self.rimage = self.image
         
@@ -194,6 +207,9 @@ class gameCard(py.sprite.Sprite):
         self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
         self.arrow = py.transform.scale(self.arrow, (100, 100))
         
+        self.damage = py.image.load("assets/images/damage.png").convert_alpha()
+        self.damage = py.transform.scale(self.damage, (100, 100))
+        
         self.arrows = []
         
         if unid == None:
@@ -286,10 +302,10 @@ class gameCard(py.sprite.Sprite):
         if self.drag and self.tile != None:
             self.arrows = []
             if v.hoverTile != None and v.hoverTile != self.tile:
-                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid())
+                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
                 for i in range(len(path) - 1):
                     arrowRect = py.Rect(0, 0, 100, 100)
-                    if path[i + 1][0] > path[i][0]: #415 + pos[0] * 150, 130 + pos[1] * 150
+                    if path[i + 1][0] > path[i][0]:
                         arrowRect.centery = 130 + path[i][1] * 150
                         arrowRect.left = 415 + path[i][0] * 150 + 50
                         rarrow = self.arrow.copy()
@@ -306,6 +322,15 @@ class gameCard(py.sprite.Sprite):
                         arrowRect.bottom = 130 + path[i][1] * 150 - 50
                         rarrow = py.transform.rotate(self.arrow, 90)
                     self.arrows.append((rarrow, arrowRect))
+                if v.hoverTile.attack:
+                    drect = py.Rect(0, 0, 100, 100)
+                    drect.center = v.hoverTile.rect.center
+                    self.arrows.append((self.damage, drect))
+                    font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
+                    dmg = font.render(str(-self.card.attack), 1, (0, 0, 0))
+                    drect = dmg.get_rect()
+                    drect.center = v.hoverTile.rect.center
+                    self.arrows.append((dmg, drect))
                 
             if v.hoverTile == self.tile:
                 self.rarrow = None

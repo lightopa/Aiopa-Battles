@@ -133,6 +133,9 @@ def game():
                 fade.fadeIn()
                 for tile in v.availableTiles:
                     tile.draw()
+                    for card in v.gameCards:
+                        if card.tile == tile:
+                            card.draw()
                 v.dragCard.draw()
             else:
                 fade.fadeOut()
@@ -152,7 +155,6 @@ def game():
                 turnText.text = "Opponent's Turn"
             
             for event in v.networkChanges:
-                # TODO: Invert enemy positions
                 if event["type"] == "place":
                     pos = event["position"]
                     pos = (3 - pos[0], pos[1])

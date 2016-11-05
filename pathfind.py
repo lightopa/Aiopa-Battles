@@ -1,10 +1,13 @@
 import variables as v
 
-def get_grid():
+def get_grid(skip=[]):
     """Generates a multidimensional array from the game board.
     
     If a tile is empty, it is marked as false. If there is a card on the tile,
     it is marked as true.
+    
+    Args:
+        skip (list): A list of tiles to never mark as True - default=[]
     
     Return:
         grid (list): A grid of booleans representing the game board
@@ -13,7 +16,7 @@ def get_grid():
             [False, False, False, False],
             [False, False, False, False]]
     for card in v.gameCards:
-        if card.tile != None:
+        if card.tile != None and not card.tile in skip:
             grid[card.tile.pos[1]][card.tile.pos[0]] = True
     return grid
 
