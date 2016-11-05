@@ -2,6 +2,7 @@ import pygame as py
 import variables as v
 import random
 from renderer import *
+import pathfind
 
 class SpriteSheet():
     def __init__(self, file_name, rows, columns):
@@ -34,7 +35,7 @@ class SpriteSheet():
                 image.blit(self.sprite_sheet, (0, 0), (w * width, h * height, width, height))
                 all.append(image)
         self.images = all
-        
+
 class tile(py.sprite.Sprite):
     def __init__(self, pos, style):
         """Creates a single game tile.
@@ -82,7 +83,8 @@ class tile(py.sprite.Sprite):
                 if self.pos[0] < 2:
                     v.availableTiles.add(self)
             else:
-                if (abs(v.dragCard.tile.pos[0] - self.pos[0]) == 1 and v.dragCard.tile.pos[1] == self.pos[1]) or (abs(v.dragCard.tile.pos[1] - self.pos[1]) == 1 and v.dragCard.tile.pos[0] == self.pos[0]):
+                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid())
+                if path != False and len(path) - 1 <= v.dragCard.card.speed:
                     v.availableTiles.add(self)
                     
                 
@@ -192,7 +194,7 @@ class gameCard(py.sprite.Sprite):
         self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
         self.arrow = py.transform.scale(self.arrow, (100, 100))
         
-        self.rarrow = None
+        self.arrows = []
         
         if unid == None:
             self.unid = "c" + str(v.unid) + str(v.cardUnid)
@@ -208,8 +210,9 @@ class gameCard(py.sprite.Sprite):
         self.update()
     
     def draw(self):
-        if self.rarrow != None:
-            change(v.screen.blit(self.rarrow, self.arrowRect))
+        if self.arrows != []:
+            for arrow in self.arrows:
+                change(v.screen.blit(arrow[0], arrow[1]))
         change(v.screen.blit(self.rimage, self.rect))
         
     
@@ -231,7 +234,7 @@ class gameCard(py.sprite.Sprite):
                     self.drag = False
                     v.dragCard = None
                     v.availableTiles = None
-                    self.rarrow = None
+                    self.arrows = []
                     if self.tile == None:
                         for tile in v.tiles:
                             if tile.hovered:
@@ -281,24 +284,28 @@ class gameCard(py.sprite.Sprite):
             self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
         
         if self.drag and self.tile != None:
-            if v.hoverTile != None and v.hoverTile != self.tile and v.hoverTile != None:
-                self.arrowRect = py.Rect(0, 0, 100, 100)
-                if v.hoverTile.pos[0] > self.tile.pos[0]:
-                    self.arrowRect.centery = self.tile.rect.centery
-                    self.arrowRect.left = self.tile.rect.centerx + 50
-                    self.rarrow = self.arrow.copy()
-                if v.hoverTile.pos[0] < self.tile.pos[0]:
-                    self.arrowRect.centery = self.tile.rect.centery
-                    self.arrowRect.right = self.tile.rect.centerx - 50
-                    self.rarrow = py.transform.rotate(self.arrow, 180)
-                if v.hoverTile.pos[1] > self.tile.pos[1]:
-                    self.arrowRect.centerx = self.tile.rect.centerx
-                    self.arrowRect.top = self.tile.rect.centery + 50
-                    self.rarrow = py.transform.rotate(self.arrow, -90)
-                if v.hoverTile.pos[1] < self.tile.pos[1]:
-                    self.arrowRect.centerx = self.tile.rect.centerx
-                    self.arrowRect.bottom = self.tile.rect.centery - 50
-                    self.rarrow = py.transform.rotate(self.arrow, 90)
+            self.arrows = []
+            if v.hoverTile != None and v.hoverTile != self.tile:
+                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid())
+                for i in range(len(path) - 1):
+                    arrowRect = py.Rect(0, 0, 100, 100)
+                    if path[i + 1][0] > path[i][0]: #415 + pos[0] * 150, 130 + pos[1] * 150
+                        arrowRect.centery = 130 + path[i][1] * 150
+                        arrowRect.left = 415 + path[i][0] * 150 + 50
+                        rarrow = self.arrow.copy()
+                    if path[i + 1][0] < path[i][0]:
+                        arrowRect.centery = 130 + path[i][1] * 150
+                        arrowRect.right = 415 + path[i][0] * 150 - 50
+                        rarrow = py.transform.rotate(self.arrow, 180)
+                    if path[i + 1][1] > path[i][1]:
+                        arrowRect.centerx = 415 + path[i][0] * 150
+                        arrowRect.top = 130 + path[i][1] * 150 + 50
+                        rarrow = py.transform.rotate(self.arrow, -90)
+                    if path[i + 1][1] < path[i][1]:
+                        arrowRect.centerx = 415 + path[i][0] * 150
+                        arrowRect.bottom = 130 + path[i][1] * 150 - 50
+                        rarrow = py.transform.rotate(self.arrow, 90)
+                    self.arrows.append((rarrow, arrowRect))
                 
             if v.hoverTile == self.tile:
                 self.rarrow = None
