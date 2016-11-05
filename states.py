@@ -164,7 +164,7 @@ def game():
                     v.gameCards.add(gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid))
                 if event["type"] == "move":
                     pos = event["position"]
-                    pos = (5 - pos[0], pos[1])
+                    pos = (3 - pos[0], pos[1])
                     for card in v.gameCards:
                         if card.unid == event["unid"]:
                             c = card
