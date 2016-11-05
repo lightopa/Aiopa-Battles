@@ -189,8 +189,8 @@ class gameCard(py.sprite.Sprite):
         self.size = size
         self.image = py.Surface(self.size)
         icon = py.image.load("assets/images/cards/" + self.card.id + ".png").convert()
-        icon = py.transform.smoothscale(icon, (int(600/770 * size[0]), int(390/1105 * size[1])))
-        self.image.blit(icon, (80/770 * size[0], 170/1105 * size[1])) #13 28
+        icon = py.transform.smoothscale(icon, (round(600/770 * size[0]), round(390/1105 * size[1])))
+        self.image.blit(icon, (80/770 * size[0], 170/1105 * size[1]))
         self.blank = py.image.load("assets/images/cards/blank_minion.png").convert_alpha()
         self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
         self.image.blit(self.blank, (0, 0))
@@ -301,7 +301,8 @@ class gameCard(py.sprite.Sprite):
                         self.rect.x -= 62 * (1 + card.cycle/60) - 62
         else:
             self.rect = py.Rect((0, 0), (100, 140))
-            self.rimage = py.transform.scale(self.image, self.rect.size)
+            #self.rimage = py.transform.scale(self.image, self.rect.size)
+            self.rimage = self.image
             self.rect.center = self.tile.rect.center
         
         if self.drag and self.tile == None:
