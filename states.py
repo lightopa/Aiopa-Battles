@@ -163,7 +163,9 @@ def game():
                         if tile.pos == pos:
                             target = tile
                     card = v.cards[event["id"]]
-                    v.gameCards.add(gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid))
+                    c = gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140))
+                    v.gameCards.add(c)
+                
                 if event["type"] == "move":
                     pos = event["position"]
                     pos = (3 - pos[0], pos[1])
@@ -173,6 +175,18 @@ def game():
                     for tile in v.tiles:
                         if tile.pos == pos:
                             c.tile = tile
+                
+                if event["type"] == "damage":
+                    for card in v.gameCards:
+                        if card.unid == event["unid"]:
+                            c = card
+                    for card in v.gameCards:
+                        if card.unid == event["target"]:
+                            t = card
+                    c.changes["health"] -= t.card.attack + t.changes["attack"]
+                    t.changes["health"] -= c.card.attack + c.changes["attack"]
+                    c._render((100, 140))
+                    t._render((100, 140))
                 if event["type"] == "turn":
                     v.gameTurn = event["turn"]
             v.networkChanges = []

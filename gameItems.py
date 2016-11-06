@@ -141,7 +141,7 @@ class card:
         self.id = id
         
 class gameCard(py.sprite.Sprite):
-    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None):
+    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(770, 1105)):
         """A card that can be placed in the game.
         
         Args:
@@ -152,7 +152,13 @@ class gameCard(py.sprite.Sprite):
         self.card = cardClass
         self.order = order
         
-        self._render()
+        self.changes = {"attack": 0,
+                        "health": 0,
+                        "speed": 0,
+                        "cost": 0}
+        self.changes.update(changes)
+        
+        self._render(renSize)
 
         self.hovered = False
         self.drag = False
@@ -185,7 +191,7 @@ class gameCard(py.sprite.Sprite):
         
         self.update()
     
-    def _render(self, size=(770, 1105)):
+    def _render(self, size):
         self.size = size
         self.image = py.Surface(self.size)
         icon = py.image.load("assets/images/cards/" + self.card.id + ".png").convert()
@@ -195,21 +201,25 @@ class gameCard(py.sprite.Sprite):
         self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
         self.image.blit(self.blank, (0, 0))
         
-        font = py.font.Font("assets/fonts/Galdeano.ttf", int(130/770 * size[0]))
+        fs = int(130/770 * size[0])
+        font = py.font.Font("assets/fonts/Galdeano.ttf", fs)
+        render = font.render(str(self.card.cost + self.changes["cost"]), 1, (0, 0, 0))
+        self.image.blit(render, (85/770 * size[0] - render.get_rect().size[0]/2, 85/1105 * size[1] - render.get_rect().size[1]/2))
+        
+        while font.size(self.card.name)[0] > 420/770 * size[0]:
+            fs -= 1
+            font = py.font.Font("assets/fonts/Galdeano.ttf", fs)
         render = font.render(self.card.name, 1, (0, 0, 0))
         self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 90/1105 * size[1] - render.get_rect().height/2))
         
-        render = font.render(str(self.card.cost), 1, (0, 0, 0))
-        self.image.blit(render, (85/770 * size[0] - render.get_rect().size[0]/2, 85/1105 * size[1] - render.get_rect().size[1]/2))
-        
         font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * size[0]))
-        render = font.render(str(self.card.attack), 1, (0, 0, 0))
+        render = font.render(str(self.card.attack + self.changes["attack"]), 1, (0, 0, 0))
         self.image.blit(render, (165/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
         
-        render = font.render(str(self.card.speed), 1, (0, 0, 0))
+        render = font.render(str(self.card.speed + self.changes["speed"]), 1, (0, 0, 0))
         self.image.blit(render, (385/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
         
-        render = font.render(str(self.card.health), 1, (0, 0, 0))
+        render = font.render(str(self.card.health + self.changes["health"]), 1, (0, 0, 0))
         self.image.blit(render, (610/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
         
         #description
@@ -275,8 +285,25 @@ class gameCard(py.sprite.Sprite):
                         if v.hoverTile == None:
                             pass
                         else:
-                            self.tile = v.hoverTile
-                            v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
+                            if v.hoverTile.attack:
+                                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                pos = path[-2]
+                                for tile in v.tiles:
+                                    if tile.pos == pos:
+                                        self.tile = tile
+                                v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
+                                for card in v.gameCards:
+                                    if card.tile == v.hoverTile:
+                                        target = card
+                                v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
+                                self.changes["health"] -= target.card.attack + target.changes["attack"]
+                                target.changes["health"] -= self.card.attack + self.changes["attack"]
+                                self._render((100, 140))
+                                target._render((100, 140))
+                            
+                            else:
+                                self.tile = v.hoverTile
+                                v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:
