@@ -9,14 +9,14 @@ class Button(py.sprite.Sprite):
         
         Args:
             text (str): The button text to display.
-            pos x,y ((int, int)): The position of the button.
+            pos x,y (int, int): The position of the button.
             size (int): The font size of the text.
-            normalcolour r,g,b ((int, int, int)): The colour of the button normally.
-            hovercolour r,g,b ((int, int, int)): The colour of the button when hovered.
+            normalcolour r,g,b (int, int, int): The colour of the button normally.
+            hovercolour r,g,b (int, int, int): The colour of the button when hovered.
             font (str): The text font file to load.
             ID (str/int): A unique id to identify the button.
             centred (bool): Whether or not the button is centred - default=False
-            bsize w,h ((int, int)): The width and height of the button - default=text
+            bsize w,h (int, int): The width and height of the button - default=text
         """
         super().__init__()
         self.ID = ID
@@ -80,8 +80,8 @@ class Text(py.sprite.Sprite):
         
         Args:
             text (str): The text to display.
-            pos x,y ((int, int)): The position of the text.
-            colour r,g,b ((int, int, int)): The colour of the text.
+            pos x,y (int, int): The position of the text.
+            colour r,g,b (int, int, int): The colour of the text.
             font (str): The text font file to load.
             size (int): The font size of the text.
             centred (bool): Whether or not the text is centred - default=False
@@ -107,4 +107,84 @@ class Text(py.sprite.Sprite):
             self.rpos[0] -= font.size(self.text)[0] / 2
             self.rpos[1] -= font.size(self.text)[1] / 2
             self.rpos = tuple(self.rpos)
+        self.draw()
+        
+class textInput(py.sprite.Sprite):
+    
+    def __init__(self, pos, fontSize, characters, fontfile, default=[], background=(255, 255, 255), centred=False):
+        """A text input field.
+        
+        Args:
+            pos x,y (int, int): The position of the box
+            fontSize (int): The font size
+            characters (int): The number of characters
+            fontFile (str): The font path
+            default (list): The default contents - default=[]
+            background r,g,b (int, int, int): Colour of the input box's background - default=white
+            centred (bool): Whether to centre the text box - default=False
+        """
+        super().__init__()
+        self.font = py.font.Font(fontfile, fontSize)
+        self.thickness = int(2 * fontSize / 20)
+        biggest = "W "
+        self.rect = py.Rect(pos, self.font.size(biggest * characters))
+        if centred:
+            self.rect.center = pos
+        self.rect.width += fontSize / 1.5
+        self.rect.height += fontSize / 1.5
+        self.fontSize = fontSize
+        self.string = default
+        self.characters = characters
+        self.shift = False
+        self.done = False
+        self.outText = ""
+        self.background = background
+    
+    def draw(self):
+        change(py.draw.rect(v.screen, self.background, self.rect))
+        change(py.draw.rect(v.screen, (0, 0, 0), self.rect, self.thickness))
+        x = self.rect.x + self.fontSize / 3
+        y = self.rect.y + self.fontSize / 3
+        for letter in self.string:
+            char = letter
+            ren = self.font.render(char, 1, (0, 0, 0))
+            change(v.screen.blit(ren, (x, y)))
+            x += self.font.size(char)[0] + self.fontSize / 6
+    
+    def update(self):
+        global textEdit
+        textEdit = True
+        self.outText = "".join(self.string)
+        for event in v.events:
+            if event.type == py.KEYDOWN:
+                if len(self.string) < self.characters:
+                    if py.key.name(event.key) in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ',', '.', "'", '/', '#', ';', '-']:
+                        if py.key.get_mods() == py.KMOD_LSHIFT:
+                            let = py.key.name(event.key).upper()
+                            if py.key.name(event.key) == '1':
+                                let = '!'
+                            if py.key.name(event.key) == '2':
+                                let = '"'
+                            if py.key.name(event.key) == '3':
+                                let = '£'
+                            if py.key.name(event.key) == '4':
+                                let = '$'
+                            if py.key.name(event.key) == '5':
+                                let = '%'
+                            if py.key.name(event.key) == '9':
+                                let = '('
+                            if py.key.name(event.key) == '0':
+                                let = ')'
+                            if py.key.name(event.key) == '/':
+                                let = '?'
+                            if py.key.name(event.key) == ';':
+                                let = ':'
+                        else:
+                            let = py.key.name(event.key)
+                        self.string.append(let)
+                    if event.key == py.K_SPACE:
+                        self.string.append(" ")
+                if event.key == py.K_BACKSPACE:
+                    if len(self.string) > 0:
+                        self.string.pop(-1)
         self.draw()

@@ -19,13 +19,12 @@ def mainMenu():
     """The main menu state"""
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Play", (640, 360), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "play", centred=True))
-    
+    change(py.Rect(0, 0, 1280, 720))
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
-        change(py.Rect(0, 0, 1280, 720))
         
         v.screen.fill((0, 255, 255))
         
@@ -34,17 +33,44 @@ def mainMenu():
         for button in buttons:
             if button.ID == "play":
                 if button.pressed():
-                    queue()
+                    #queue()
+                    setup()
                     #game()
                 
         refresh()
 
+def setup():
+    """The state for setting your name and choosing a deck"""
+    name = menuItems.textInput((640, 360), 60, 10, "assets/fonts/Galdeano.ttf", default=["b", "o", "b"], background=(255, 255, 255), centred=True)
+    texts = py.sprite.Group()
+    texts.add(menuItems.Text("Enter a name", (640, 280), (0, 0, 0), "assets/fonts/Galdeano.ttf", 80, centred=True))
+    next = menuItems.Button("Join Queue", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "next", centred=True)
+    
+    change(py.Rect(0, 0, 1280, 720))
+    while True:
+        py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        v.clock.tick(30)
+        
+        v.screen.fill((50, 100, 200))
+        
+        name.update()
+        texts.update()
+        next.update()
+        
+        if next.pressed():
+            v.name = name.outText
+            queue()
+        
+        refresh()
 
 def queue():
     """The queue state"""
     loading = menuItems.Text("Joining Queue", (640, 360), (150, 50, 50), "assets/fonts/Galdeano.ttf", 80, centred=True)
     v.screen.fill((50, 100, 200))
     loading.update()
+    change(py.Rect(0, 0, 1280, 720))
     refresh()
     py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
     
@@ -56,7 +82,7 @@ def queue():
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
-        change(py.Rect(0, 0, 1280, 720))
+        
         
         v.screen.fill((50, 100, 200))
         for event in v.events:
@@ -106,8 +132,12 @@ def game():
     
     turnButton = menuItems.Button("End Turn", (1100, 630), 40, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "turn", centred=True, bsize=(150, 150))
     turnText = menuItems.Text("", (1100, 530), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
+    opName = menuItems.Text("", (1100, 40), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
+    pName = menuItems.Text("", (180, 40), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
     
     network.gameLoop()
+    
+    change(py.Rect(0, 0, 1280, 720))
     
     while True:
         py.event.pump()
@@ -128,6 +158,11 @@ def game():
             castles.update()
             turnButton.update()
             turnText.update()
+            
+            opName.text = v.opName
+            opName.update()
+            pName.text = v.name
+            pName.update()
             
             if v.dragCard != None:
                 fade.fadeIn()
@@ -153,6 +188,7 @@ def game():
                 turnText.text = "Your Turn"
             else:
                 turnText.text = "Opponent's Turn"
+            
             
             for event in v.networkChanges:
                 if event["type"] == "place":
@@ -200,6 +236,8 @@ def game():
                 s.draw()
             turnButton.draw()
             turnText.draw()
+            opName.draw()
+            pName.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
         

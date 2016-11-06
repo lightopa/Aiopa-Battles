@@ -16,6 +16,8 @@ networkChanges = []
 ping = [0]
 cardUnid = 0
 
+name = ""
+
 cards = {}
 deck = []
 tiles = None
@@ -27,6 +29,7 @@ hoverTile = None
 server = "http://127.0.0.1:5000/"
 unid = 0
 opUnid = None
+opName = None
 game = None
 networkHalt = False
 serverConnected = False

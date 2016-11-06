@@ -398,7 +398,7 @@ class castle(py.sprite.Sprite):
         """
         super().__init__()
         self.friendly = friendly
-        self.rect = py.Rect(0, 0, 300, 300)
+        self.rect = py.Rect(0, 0, 200, 200)
         self.image = py.image.load("assets/images/castle.png").convert_alpha()
         self.image = py.transform.scale(self.image, self.rect.size)
         if self.friendly:

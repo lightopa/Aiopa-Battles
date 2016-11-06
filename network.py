@@ -34,7 +34,7 @@ def queue(loadObj):
     localServerCheck()
     def _queue():
         key = random.random()
-        payload = {"key": key}
+        payload = {"key": key, "name": v.name}
         jpayload = json.dumps(str(payload))
         r = requests.post(v.server + "connect/", data=jpayload)
         data = ast.literal_eval(r.text)
@@ -99,13 +99,14 @@ def gameLoop():
 def gameJoin():
     """Will confirm the client's connection to the game server, and receive which player will begin"""
     def _gameJoin():
-        payload = {"unid": v.unid, "game": v.game} #also push name
+        payload = {"unid": v.unid, "game": v.game}
         jpayload = json.dumps(str(payload))
         r = requests.post(v.server + "game_start/", data=jpayload)
         data = ast.literal_eval(r.text)
         v.gameStarter = data["starter"]
         v.gameTurn = data["turn"]
         v.opUnid = data["opponent"]
+        v.opName = data["opName"]
     t2 = threading.Thread(target=_gameJoin)
     t2.start()
 
