@@ -90,9 +90,11 @@ class Text(py.sprite.Sprite):
         self.text = text
         self.pos = pos
         self.colour = colour
-        self.font = font
         self.size = size
         self.centred = centred
+        self.font = py.font.Font(font, self.size)
+        
+        self.oldText = None
         self.update()
         
     def draw(self):
@@ -100,12 +102,13 @@ class Text(py.sprite.Sprite):
     
     def update(self):
         self.rpos = self.pos
-        font = py.font.Font(self.font, self.size)
-        self.label = font.render(self.text, 1, self.colour)
+        if self.text != self.oldText:
+            self.label = self.font.render(self.text, 1, self.colour)
+            self.oldText = self.text
         if self.centred:
             self.rpos = list(self.pos)
-            self.rpos[0] -= font.size(self.text)[0] / 2
-            self.rpos[1] -= font.size(self.text)[1] / 2
+            self.rpos[0] -= self.font.size(self.text)[0] / 2
+            self.rpos[1] -= self.font.size(self.text)[1] / 2
             self.rpos = tuple(self.rpos)
         self.draw()
         
