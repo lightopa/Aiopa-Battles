@@ -134,10 +134,12 @@ class healthBar(py.sprite.Sprite):
         else:
             self.rect.center = (1100, 410)
         self.image = py.image.load("assets/images/healthBar.png").convert_alpha()
+        self.font = py.font.Font("assets/fonts/Galdeano.ttf", 35)
         self.update()
     
     def draw(self):
         change(v.screen.blit(self.rimage, self.rect))
+        change(v.screen.blit(self.rtext, (self.rect.centerx - self.rtext.get_rect().width/2, self.rect.centery - self.rtext.get_rect().height/2)))
     
     def update(self):
         self.rimage = self.image.copy()
@@ -145,7 +147,11 @@ class healthBar(py.sprite.Sprite):
         if self.friendly:
             r = py.Rect(0, 0, 200 * v.pHealth/20, 50)
             self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+            self.rtext = self.font.render(str(v.pHealth), 1, (0, 0, 0))
         else:
             r = py.Rect(0, 0, 200 * v.opHealth/20, 50)
             self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+            self.rtext = self.font.render(str(v.opHealth), 1, (0, 0, 0))
+        
+        
         self.draw()
