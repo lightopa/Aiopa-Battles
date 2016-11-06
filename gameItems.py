@@ -404,9 +404,8 @@ class castle(py.sprite.Sprite):
         if self.friendly:
             self.rect.center = (180, 280)
         else:
-            self.rect.center = (1280 - 180, 280)
+            self.rect.center = (1100, 280)
             self.image.fill((255, 0, 0), special_flags=py.BLEND_MULT)
-        
     
     def draw(self):
         change(v.screen.blit(self.image, self.rect))

@@ -17,6 +17,7 @@ ping = [0]
 cardUnid = 0
 
 name = ""
+pHealth = 20
 
 cards = {}
 deck = []
@@ -30,6 +31,7 @@ server = "http://127.0.0.1:5000/"
 unid = 0
 opUnid = None
 opName = None
+opHealth = 20
 game = None
 networkHalt = False
 serverConnected = False

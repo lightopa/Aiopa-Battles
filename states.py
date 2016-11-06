@@ -135,6 +135,10 @@ def game():
     opName = menuItems.Text("", (1100, 40), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
     pName = menuItems.Text("", (180, 40), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
     
+    gui = py.sprite.Group()
+    gui.add(guiItems.healthBar(True))
+    gui.add(guiItems.healthBar(False))
+    
     network.gameLoop()
     
     change(py.Rect(0, 0, 1280, 720))
@@ -163,6 +167,7 @@ def game():
             opName.update()
             pName.text = v.name
             pName.update()
+            gui.update()
             
             if v.dragCard != None:
                 fade.fadeIn()
@@ -233,6 +238,8 @@ def game():
             for s in v.gameCards:
                 s.draw()
             for s in castles:
+                s.draw()
+            for s in gui:
                 s.draw()
             turnButton.draw()
             turnText.draw()

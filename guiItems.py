@@ -123,3 +123,29 @@ class coinScreen(py.sprite.Sprite):
                 self.state = "out"
                 v.pause = False
                 v.pauseType = None
+
+class healthBar(py.sprite.Sprite):
+    def __init__(self, friendly):
+        super().__init__()
+        self.friendly = friendly
+        self.rect = py.Rect(0, 0, 200, 50)
+        if self.friendly:
+            self.rect.center = (180, 410)
+        else:
+            self.rect.center = (1100, 410)
+        self.image = py.image.load("assets/images/healthBar.png").convert_alpha()
+        self.update()
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+    
+    def update(self):
+        self.rimage = self.image.copy()
+        self.rimage.fill((200, 150, 150), special_flags=py.BLEND_MULT)
+        if self.friendly:
+            r = py.Rect(0, 0, 200 * v.pHealth/20, 50)
+            self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+        else:
+            r = py.Rect(0, 0, 200 * v.opHealth/20, 50)
+            self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+        self.draw()
