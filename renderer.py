@@ -19,7 +19,7 @@ def refresh():
             if event.key == py.K_F11:
                 v.fullscreen = not v.fullscreen
                 if v.fullscreen:
-                    v.display = py.display.set_mode((1280, 720), py.FULLSCREEN)
+                    v.display = py.display.set_mode((1280, 720), py.FULLSCREEN|py.HWSURFACE|py.DOUBLEBUF)
                     v.windowHeight = 720
                     v.windowWidth = 1280
                 else:
