@@ -93,7 +93,7 @@ class tile(py.sprite.Sprite):
                         if card.player == v.opUnid:
                             a = True
                             path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
-                if path != False and len(path) - 1 <= v.dragCard.card.speed:
+                if path != False and len(path) - 1 <= v.dragCard.moves:
                     v.availableTiles.add(self)
                     if a:
                         self.attack = True
@@ -158,6 +158,9 @@ class gameCard(py.sprite.Sprite):
                         "cost": 0}
         self.changes.update(changes)
         
+        #self.moves = self.card.speed + self.changes["speed"]
+        self.moves = 0
+        
         self._render(renSize)
 
         self.hovered = False
@@ -190,6 +193,9 @@ class gameCard(py.sprite.Sprite):
             self.player = player
         
         self.update()
+    
+    def next_turn(self):
+        self.moves = self.card.speed + self.changes["speed"]
     
     def _render(self, size):
         self.size = size
@@ -285,25 +291,29 @@ class gameCard(py.sprite.Sprite):
                         if v.hoverTile == None:
                             pass
                         else:
-                            if v.hoverTile.attack:
-                                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
-                                pos = path[-2]
-                                for tile in v.tiles:
-                                    if tile.pos == pos:
-                                        self.tile = tile
-                                v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
-                                for card in v.gameCards:
-                                    if card.tile == v.hoverTile:
-                                        target = card
-                                v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
-                                self.changes["health"] -= target.card.attack + target.changes["attack"]
-                                target.changes["health"] -= self.card.attack + self.changes["attack"]
-                                self._render((100, 140))
-                                target._render((100, 140))
-                            
-                            else:
-                                self.tile = v.hoverTile
-                                v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
+                            if v.hoverTile != self.tile:
+                                if v.hoverTile.attack:
+                                    path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                    pos = path[-2]
+                                    self.moves = 0
+                                    for tile in v.tiles:
+                                        if tile.pos == pos:
+                                            self.tile = tile
+                                    v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
+                                    for card in v.gameCards:
+                                        if card.tile == v.hoverTile:
+                                            target = card
+                                    v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
+                                    self.changes["health"] -= target.card.attack + target.changes["attack"]
+                                    target.changes["health"] -= self.card.attack + self.changes["attack"]
+                                    self._render((100, 140))
+                                    target._render((100, 140))
+                                
+                                else:
+                                    path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                    self.tile = v.hoverTile
+                                    v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
+                                    self.moves -= len(path) - 1
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:
@@ -329,8 +339,10 @@ class gameCard(py.sprite.Sprite):
         else:
             self.rect = py.Rect((0, 0), (100, 140))
             #self.rimage = py.transform.scale(self.image, self.rect.size)
-            self.rimage = self.image
+            self.rimage = self.image.copy()
             self.rect.center = self.tile.rect.center
+            if self.moves <= 0:
+                self.rimage.fill((150, 150, 150), special_flags=py.BLEND_MULT)
         
         if self.drag and self.tile == None:
             self.rect.x = v.mouse_pos[0] - self.dragPoint[0]

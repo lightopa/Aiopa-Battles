@@ -230,6 +230,10 @@ def game():
                     t._render((100, 140))
                 if event["type"] == "turn":
                     v.gameTurn = event["turn"]
+                    if v.gameTurn["player"] == v.unid:
+                        for s in v.gameCards:
+                            if s.player == v.unid and s.tile != None:
+                                s.next_turn()
             v.networkChanges = []
             
         if v.pause:
