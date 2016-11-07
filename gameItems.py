@@ -108,7 +108,7 @@ class tile(py.sprite.Sprite):
             v.hoverTile = self
             self.rimage = self.image.copy()
             self.rimage.fill((255, 255, 255, 200))
-        if self.attack:
+        elif self.attack:
             self.rimage = self.image.copy()
             self.rimage.fill((255, 0, 0, 200))
         else:
@@ -314,6 +314,10 @@ class gameCard(py.sprite.Sprite):
                                     self.tile = v.hoverTile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
                                     self.moves -= len(path) - 1
+                    if self.moves <= 0:
+                        v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": False})
+                    else:
+                        v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": True})
             
         if self.tile == None:
             if self.cycle < 30 and self.hovered:

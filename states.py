@@ -217,6 +217,15 @@ def game():
                         if tile.pos == pos:
                             c.tile = tile
                 
+                if event["type"] == "movable":
+                    for card in v.gameCards:
+                        if card.unid == event["unid"]:
+                            c = card
+                    if event["movable"]:
+                        c.moves = 1
+                    else:
+                        c.moves = 0
+                
                 if event["type"] == "damage":
                     for card in v.gameCards:
                         if card.unid == event["unid"]:
@@ -230,10 +239,13 @@ def game():
                     t._render((100, 140))
                 if event["type"] == "turn":
                     v.gameTurn = event["turn"]
-                    if v.gameTurn["player"] == v.unid:
-                        for s in v.gameCards:
+                    for s in v.gameCards:
+                        if v.gameTurn["player"] == v.unid:
                             if s.player == v.unid and s.tile != None:
                                 s.next_turn()
+                        if v.gameTurn["player"] == v.opUnid:
+                            if s.player == v.opUnid:
+                                s.moves = 1
             v.networkChanges = []
             
         if v.pause:
