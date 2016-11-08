@@ -104,15 +104,20 @@ class tile(py.sprite.Sprite):
             if not self in v.availableTiles:
                 self.hovered = False
  
+        self.rimage = self.image.copy()
+        
+        for c in v.gameCards:
+            if c.tile == self:
+                if c.player == v.unid:
+                    self.rimage.fill((100, 255, 100, 200), special_flags=py.BLEND_RGBA_MULT)
+                else:
+                    self.rimage.fill((255, 100, 100, 200), special_flags=py.BLEND_RGBA_MULT)
+        
         if self.hovered:
             v.hoverTile = self
-            self.rimage = self.image.copy()
             self.rimage.fill((255, 255, 255, 200))
         elif self.attack:
-            self.rimage = self.image.copy()
-            self.rimage.fill((255, 0, 0, 200))
-        else:
-            self.rimage = self.image
+            self.rimage.fill((255, 0, 0, 200), special_flags=py.BLEND_MULT)
         
         self.draw()
             

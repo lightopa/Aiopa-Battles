@@ -3,6 +3,7 @@ import variables as v
 import menuItems
 import gameItems
 from renderer import *
+import time
 
 class blackFade(py.sprite.Sprite):
     def __init__(self, limit=255, rate=6, gradient=False):
@@ -154,4 +155,36 @@ class healthBar(py.sprite.Sprite):
             self.rtext = self.font.render(str(v.opHealth), 1, (0, 0, 0))
         
         
+        self.draw()
+
+class timer(py.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.rect = py.Rect(340, 45, 600, 10)
+        self.image = py.Surface(self.rect.size)
+        self.image.fill((255, 230, 50))
+        py.draw.rect(self.image, (150, 130, 100), (0, 0, 600, 10), 3)
+        self.image.set_alpha(150)
+        
+        self.mask = py.Surface((self.rect.width, self.rect.height - 3))
+        self.mask.fill((75, 75, 75))
+        self.mask.set_alpha(0)
+        self.update()
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+        change(v.screen.blit(self.mask, (self.rect.x + v.timeLeft/v.turnLength * 600, self.rect.y + 1.5), (0, 0, 600 - v.timeLeft/v.turnLength * 600, 10)))
+    
+    def update(self):
+        v.timeLeft = v.turnLength - (time.time() - v.gameTurn["time"])
+        if v.timeLeft/v.turnLength > 0.25:
+            self.image.set_alpha(200 - v.timeLeft/v.turnLength * 200)
+            self.mask.set_alpha(200 - v.timeLeft/v.turnLength * 200)
+        if v.timeLeft <= 0:
+            v.timeLeft = 0
+        if v.gameTurn != None and v.gameTurn["player"] != v.unid:
+            self.rimage = self.image.copy()
+            self.rimage.fill((255, 0, 0), special_flags=py.BLEND_MULT)
+        else:
+            self.rimage = self.image
         self.draw()

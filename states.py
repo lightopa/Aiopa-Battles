@@ -138,6 +138,7 @@ def game():
     gui = py.sprite.Group()
     gui.add(guiItems.healthBar(True))
     gui.add(guiItems.healthBar(False))
+    gui.add(guiItems.timer())
     
     network.gameLoop()
     
@@ -193,60 +194,13 @@ def game():
                 turnText.text = "Your Turn"
             else:
                 turnText.text = "Opponent's Turn"
+                
+            if v.timeLeft <= 0 and v.gameTurn["player"] == v.unid:
+                v.networkEvents.append({"type": "turn"})
+                v.gameTurn["player"] = None
             
             
-            for event in v.networkChanges:
-                if event["type"] == "place":
-                    pos = event["position"]
-                    pos = (3 - pos[0], pos[1])
-                    cunid = event["unid"]
-                    for tile in v.tiles:
-                        if tile.pos == pos:
-                            target = tile
-                    card = v.cards[event["id"]]
-                    c = gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140))
-                    v.gameCards.add(c)
-                
-                if event["type"] == "move":
-                    pos = event["position"]
-                    pos = (3 - pos[0], pos[1])
-                    for card in v.gameCards:
-                        if card.unid == event["unid"]:
-                            c = card
-                    for tile in v.tiles:
-                        if tile.pos == pos:
-                            c.tile = tile
-                
-                if event["type"] == "movable":
-                    for card in v.gameCards:
-                        if card.unid == event["unid"]:
-                            c = card
-                    if event["movable"]:
-                        c.moves = 1
-                    else:
-                        c.moves = 0
-                
-                if event["type"] == "damage":
-                    for card in v.gameCards:
-                        if card.unid == event["unid"]:
-                            c = card
-                    for card in v.gameCards:
-                        if card.unid == event["target"]:
-                            t = card
-                    c.changes["health"] -= t.card.attack + t.changes["attack"]
-                    t.changes["health"] -= c.card.attack + c.changes["attack"]
-                    c._render((100, 140))
-                    t._render((100, 140))
-                if event["type"] == "turn":
-                    v.gameTurn = event["turn"]
-                    for s in v.gameCards:
-                        if v.gameTurn["player"] == v.unid:
-                            if s.player == v.unid and s.tile != None:
-                                s.next_turn()
-                        if v.gameTurn["player"] == v.opUnid:
-                            if s.player == v.opUnid:
-                                s.moves = 1
-            v.networkChanges = []
+            network.changes()
             
         if v.pause:
             for s in v.tiles:

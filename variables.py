@@ -15,6 +15,8 @@ networkEvents = []
 networkChanges = []
 ping = [0]
 cardUnid = 0
+turnLength = 40
+timeLeft = turnLength
 
 name = ""
 pHealth = 20
