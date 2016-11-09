@@ -123,27 +123,23 @@ class tile(py.sprite.Sprite):
             
 
 class card:
-    def __init__(self, name, attack, health, speed, description, type, cost, id):
+    def __init__(self, attributes):
         """A container for information about a single card.
         
         Args:
-            name (str): The card's name.
-            attack (int): The card's attack.
-            health (int): The card's health.
-            speed (int): The card's speed.
-            description (str): A description of the card's function.
-            type (str): What type of card this is.
-            cost (int): The mana cost of the card.
-            id (str): The unique identifier for the card
+            attributes (dict): A dictionary of attributes for the card
         """
-        self.name = name
-        self.attack = attack
-        self.health = health
-        self.speed = speed
-        self.description = description
-        self.type = type
-        self.cost = cost
-        self.id = id
+        self.name = attributes["name"]
+        self.type = attributes["type"]
+        if self.type == "minion":
+            self.attack = attributes["attack"]
+            self.health = attributes["health"]
+            self.speed = attributes["speed"]
+        if self.type == "spell":
+            self.effects = attributes["effects"]
+        self.description = attributes["description"]
+        self.cost = attributes["cost"]
+        self.id = attributes["id"]
         
 class gameCard(py.sprite.Sprite):
     def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(770, 1105)):
@@ -266,6 +262,9 @@ class gameCard(py.sprite.Sprite):
             self.hovered = True
         else:
             self.hovered = False
+            
+        if self.card.health + self.changes["health"] <= 0:
+            self.kill()
         
         for event in v.events:
             if v.gameTurn != None and v.gameTurn["player"] == v.unid:
@@ -313,13 +312,15 @@ class gameCard(py.sprite.Sprite):
                                     target.changes["health"] -= self.card.attack + self.changes["attack"]
                                     self._render((100, 140))
                                     target._render((100, 140))
+                                    if target.changes["health"] + target.card.health <= 0:
+                                        v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
                                 
                                 else:
                                     path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
                                     self.tile = v.hoverTile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
                                     self.moves -= len(path) - 1
-                    if self.moves <= 0:
+                    if self.moves <= 0 and self.alive():
                         v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": False})
                     else:
                         v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": True})
