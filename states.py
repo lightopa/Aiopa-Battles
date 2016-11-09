@@ -116,7 +116,7 @@ def game():
     v.gameCards = py.sprite.Group() 
     v.deck = list(v.cards.values())
     for i in range(3):
-        v.gameCards.add(gameItems.gameCard(v.deck[i], i))
+        gameItems.add_card(v.deck[i], i)
     v.deck = v.deck[3:]
     
     debug = guiItems.debug()

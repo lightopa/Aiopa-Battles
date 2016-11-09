@@ -115,14 +115,7 @@ def getCards():
     r = requests.get(v.server + "get_cards/")
     data = ast.literal_eval(r.text)
     for value in data["cards"]:
-        v.cards[value["id"]] = gameItems.card(name=value["name"], 
-                                                attack=value["attack"],
-                                                health=value["health"],
-                                                speed=value["speed"],
-                                                description=value["description"],
-                                                type=value["type"],
-                                                cost=value["cost"],
-                                                id=value["id"])
+        v.cards[value["id"]] = gameItems.card(value)
     
 
 def changes():
@@ -135,8 +128,7 @@ def changes():
                 if tile.pos == pos:
                     target = tile
             card = v.cards[event["id"]]
-            c = gameItems.gameCard(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140))
-            v.gameCards.add(c)
+            gameItems.add_card(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140))
         
         if event["type"] == "move":
             pos = event["position"]
@@ -168,15 +160,25 @@ def changes():
             t.changes["health"] -= c.card.attack + c.changes["attack"]
             c._render((100, 140))
             t._render((100, 140))
+        
+        if event["type"] == "spell":
+            for card in v.gameCards:
+                if card.unid == event["target"]:
+                    target = card
+            if "damage" in event["effects"].keys():
+                target.changes["health"] -= event["effects"]["damage"]
+            target._render((100, 140))
+                
         if event["type"] == "turn":
             v.gameTurn = event["turn"]
             for s in v.gameCards:
-                if v.gameTurn["player"] == v.unid:
-                    if s.player == v.unid and s.tile != None:
-                        s.next_turn()
-                if v.gameTurn["player"] == v.opUnid:
-                    if s.player == v.opUnid:
-                        s.moves = 1
+                if s.type == "minion":
+                    if v.gameTurn["player"] == v.unid:
+                        if s.player == v.unid and s.tile != None:
+                            s.next_turn()
+                    if v.gameTurn["player"] == v.opUnid:
+                        if s.player == v.opUnid:
+                            s.moves = 1
     v.networkChanges = []
 
 

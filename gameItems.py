@@ -36,6 +36,12 @@ class SpriteSheet():
                 all.append(image)
         self.images = all
 
+def add_card(card, order=0, **kwargs):
+    if card.type == "minion":
+        v.gameCards.add(minionCard(card, order, **kwargs))
+    if card.type == "spell":
+        v.gameCards.add(spellCard(card, order, **kwargs))
+    
 class tile(py.sprite.Sprite):
     def __init__(self, pos, style):
         """Creates a single game tile.
@@ -82,20 +88,26 @@ class tile(py.sprite.Sprite):
         self.attack = False
         
         if v.dragCard != None:
-            if v.dragCard.tile == None:
-                if self.pos[0] < 2:
-                    v.availableTiles.add(self)
-            else:
-                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
-                a = False
+            if v.dragCard.type == "minion":
+                if v.dragCard.tile == None:
+                    if self.pos[0] < 2:
+                        v.availableTiles.add(self)
+                else:
+                    path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
+                    a = False
+                    for card in v.gameCards:
+                        if card.tile == self:
+                            if card.player == v.opUnid:
+                                a = True
+                                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
+                    if path != False and len(path) - 1 <= v.dragCard.moves:
+                        v.availableTiles.add(self)
+                        if a:
+                            self.attack = True
+            if v.dragCard.type == "spell":
                 for card in v.gameCards:
                     if card.tile == self:
-                        if card.player == v.opUnid:
-                            a = True
-                            path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
-                if path != False and len(path) - 1 <= v.dragCard.moves:
-                    v.availableTiles.add(self)
-                    if a:
+                        v.availableTiles.add(self)
                         self.attack = True
                     
                     
@@ -142,7 +154,7 @@ class card:
         self.id = attributes["id"]
         
 class gameCard(py.sprite.Sprite):
-    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(770, 1105)):
+    def __init__(self, cardClass, order=0, unid=None, changes={}, renSize=(770, 1105)):
         """A card that can be placed in the game.
         
         Args:
@@ -151,6 +163,7 @@ class gameCard(py.sprite.Sprite):
         """
         super().__init__()
         self.card = cardClass
+        self.type = self.card.type
         self.order = order
         
         self.changes = {"attack": 0,
@@ -162,89 +175,72 @@ class gameCard(py.sprite.Sprite):
         #self.moves = self.card.speed + self.changes["speed"]
         self.moves = 0
         
-        self._render(renSize)
-
-        self.hovered = False
-        self.drag = False
-        self.cycle = 0
-        self.dragPoint = (0, 0)
-        self.tile = tile
-        
-        self.rect = py.Rect((0, 0), (155, 220))
-        self.rect.center = (415 + self.order * (self.rect.width + 10), 630)
-                
-        self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
-        self.arrow = py.transform.scale(self.arrow, (100, 100))
-        
-        self.damage = py.image.load("assets/images/damage.png").convert_alpha()
-        self.damage = py.transform.scale(self.damage, (100, 100))
-        
-        self.preCard = []
-        self.postCard = []
-        
         if unid == None:
             self.unid = "c" + str(v.unid) + str(v.cardUnid)
             v.cardUnid += 1
         else:
             self.unid = unid
         
-        if player == None:
-            self.player = v.unid
-        else:
-            self.player = player
+        self._render(renSize)
+
+        self.hovered = False
+        self.drag = False
+        self.cycle = 0
+        self.dragPoint = (0, 0)
         
-        self.update()
+        self.rect = py.Rect((0, 0), (155, 220))
+        self.rect.center = (415 + self.order * (self.rect.width + 10), 630)
+        
+        self.damage = py.image.load("assets/images/damage.png").convert_alpha()
+        self.damage = py.transform.scale(self.damage, (100, 100))
+        
+        self.preCard = []
+        self.postCard = []
     
-    def next_turn(self):
-        self.moves = self.card.speed + self.changes["speed"]
-    
-    def _render(self, size):
-        self.size = size
+    def _base_render(self, size):
+        if size != None:
+            self.size = size
         self.image = py.Surface(self.size)
         icon = py.image.load("assets/images/cards/" + self.card.id + ".png").convert()
-        icon = py.transform.smoothscale(icon, (round(600/770 * size[0]), round(390/1105 * size[1])))
-        self.image.blit(icon, (80/770 * size[0], 170/1105 * size[1]))
-        self.blank = py.image.load("assets/images/cards/blank_minion.png").convert_alpha()
+        icon = py.transform.smoothscale(icon, (round(600/770 * self.size[0]), round(390/1105 * self.size[1])))
+        self.image.blit(icon, (80/770 * self.size[0], 170/1105 * self.size[1]))
+        if self.card.type == "minion":
+            self.blank = py.image.load("assets/images/cards/blank_minion.png").convert_alpha()
+        if self.card.type == "spell":
+            self.blank = py.image.load("assets/images/cards/blank_spell.png").convert_alpha()
         self.blank = py.transform.smoothscale(self.blank, (self.size[0], self.size[1]))
         self.image.blit(self.blank, (0, 0))
         
-        fs = int(130/770 * size[0])
+        fs = int(130/770 * self.size[0])
         font = py.font.Font("assets/fonts/Galdeano.ttf", fs)
         render = font.render(str(self.card.cost + self.changes["cost"]), 1, (0, 0, 0))
-        self.image.blit(render, (85/770 * size[0] - render.get_rect().size[0]/2, 85/1105 * size[1] - render.get_rect().size[1]/2))
+        self.image.blit(render, (85/770 * self.size[0] - render.get_rect().size[0]/2, 85/1105 * self.size[1] - render.get_rect().size[1]/2))
         
-        while font.size(self.card.name)[0] > 420/770 * size[0]:
+        while font.size(self.card.name)[0] > 420/770 * self.size[0]:
             fs -= 1
             font = py.font.Font("assets/fonts/Galdeano.ttf", fs)
         render = font.render(self.card.name, 1, (0, 0, 0))
-        self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 90/1105 * size[1] - render.get_rect().height/2))
-        
-        font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * size[0]))
-        render = font.render(str(self.card.attack + self.changes["attack"]), 1, (0, 0, 0))
-        self.image.blit(render, (165/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
-        
-        render = font.render(str(self.card.speed + self.changes["speed"]), 1, (0, 0, 0))
-        self.image.blit(render, (385/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
-        
-        render = font.render(str(self.card.health + self.changes["health"]), 1, (0, 0, 0))
-        self.image.blit(render, (610/770 * size[0] - render.get_rect().size[0]/2, 590/1105 * size[1] - render.get_rect().size[1]/2))
-        
-        #description
+        self.image.blit(render, (self.size[0]/2 - render.get_rect().width/2, 90/1105 * self.size[1] - render.get_rect().height/2))
+    
+    def _render_description(self):
+        font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * self.size[0]))
         words = self.card.description.split(" ")
         line = ""
         lineNum = 0
         for word in words:
             fsize = font.size(line + word + " ")
-            if fsize[0] < 590/770 * size[0]:
+            if fsize[0] < 590/770 * self.size[0]:
                 line = line + word + " "
             else:
                 render = font.render(line, 1, (0, 0, 0))
-                self.image.blit(render, (100/770 * size[0], 670/1105 * size[1] + lineNum * render.get_rect().height))
+                self.image.blit(render, (100/770 * self.size[0], 670/1105 * self.size[1] + lineNum * render.get_rect().height))
                 lineNum += 1
                 line = word + " "
         render = font.render(line, 1, (0, 0, 0))
-        self.image.blit(render, (100/770 * size[0], 670/1105 * size[1] + lineNum * render.get_rect().height))
+        self.image.blit(render, (100/770 * self.size[0], 670/1105 * self.size[1] + lineNum * render.get_rect().height))
         
+    def next_turn(self):
+        self.moves = self.card.speed + self.changes["speed"]
     
     def draw(self):
         if self.preCard != []:
@@ -256,13 +252,116 @@ class gameCard(py.sprite.Sprite):
                 change(v.screen.blit(item[0], item[1]))
         
     
-    def update(self):
+    def _hand_update(self):
+        if self.cycle < 30 and self.hovered:
+            self.cycle += 4
+        if self.cycle > 0 and not self.hovered:
+            self.cycle -= 4  
+        if self.cycle >= 30:
+            self.cycle = 30
+        if self.cycle <= 0:
+            self.cycle = 0
+        
+        sMod = 1 + self.cycle/60
+        
+        self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
+        self.rimage = py.transform.scale(self.image, self.rect.size)
+        self.rect.center = (415 + self.order * (125 + 10), 710 - self.rect.size[1]/2)
+        for card in v.gameCards:
+            if card.tile == None and card.cycle > 0:
+                if card.order < self.order:
+                    self.rect.x += 62 * (1 + card.cycle/60) - 62
+                if card.order > self.order:
+                    self.rect.x -= 62 * (1 + card.cycle/60) - 62
+        
+        if self.drag:
+            self.rect.x = v.mouse_pos[0] - self.dragPoint[0]
+            self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
+    
+    
+    def _pre_update(self):
         change(self.rect)
         if self.rect.collidepoint(v.mouse_pos):
             self.hovered = True
         else:
             self.hovered = False
-            
+    
+    
+    def update(self):
+        self.draw()
+
+class spellCard(gameCard):
+    def __init__(self, cardClass, order=0, changes={}, renSize=(770, 1105)):
+        super().__init__(cardClass, order=order, changes=changes, renSize=renSize)
+        self.tile = None
+        self._render(renSize)
+        self.update()
+    
+    def _render(self, size=(770, 1105)):
+        self._base_render(size)
+        self._render_description()
+    
+    def update(self):
+        self._pre_update()
+        for event in v.events:
+            if v.gameTurn != None and v.gameTurn["player"] == v.unid:
+                if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                    self.drag = True
+                    self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
+                    v.dragCard = self
+                    v.availableTiles = py.sprite.Group()
+            if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
+                self.drag = False
+                v.dragCard = None
+                v.availableTiles = None
+                self.preCard = []
+                self.postCard = []
+                if v.hoverTile != None:
+                    for card in v.gameCards:
+                        if card.tile == v.hoverTile:
+                            target = card
+                    if "damage" in self.card.effects.keys():
+                        target.changes["health"] -= self.card.effects["damage"]
+                        v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid})
+                        target._render()
+        self._hand_update()
+        self.draw()
+
+class minionCard(gameCard):
+    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(770, 1105)):
+        super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize)
+        self.tile = tile
+        
+        self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
+        self.arrow = py.transform.scale(self.arrow, (100, 100))
+        
+        if player == None:
+            self.player = v.unid
+        else:
+            self.player = player
+        
+        self.update()
+    
+    def _render(self, size=None):
+        self._base_render(size)
+        
+        #render attack
+        font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * self.size[0]))
+        render = font.render(str(self.card.attack + self.changes["attack"]), 1, (0, 0, 0))
+        self.image.blit(render, (165/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+        
+        #render speed
+        render = font.render(str(self.card.speed + self.changes["speed"]), 1, (0, 0, 0))
+        self.image.blit(render, (385/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+        
+        #render health
+        render = font.render(str(self.card.health + self.changes["health"]), 1, (0, 0, 0))
+        self.image.blit(render, (610/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+        
+        self._render_description()
+        
+    def update(self):
+        self._pre_update()
         if self.card.health + self.changes["health"] <= 0:
             self.kill()
         
@@ -324,39 +423,14 @@ class gameCard(py.sprite.Sprite):
                         v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": False})
                     else:
                         v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": True})
-            
         if self.tile == None:
-            if self.cycle < 30 and self.hovered:
-                self.cycle += 4
-            if self.cycle > 0 and not self.hovered:
-                self.cycle -= 4  
-            if self.cycle >= 30:
-                self.cycle = 30
-            if self.cycle <= 0:
-                self.cycle = 0
-            
-            sMod = 1 + self.cycle/60
-            
-            self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
-            self.rimage = py.transform.scale(self.image, self.rect.size)
-            self.rect.center = (415 + self.order * (125 + 10), 710 - self.rect.size[1]/2)
-            for card in v.gameCards:
-                if card.tile == None and card.cycle > 0:
-                    if card.order < self.order:
-                        self.rect.x += 62 * (1 + card.cycle/60) - 62
-                    if card.order > self.order:
-                        self.rect.x -= 62 * (1 + card.cycle/60) - 62
+            self._hand_update()
         else:
             self.rect = py.Rect((0, 0), (100, 140))
-            #self.rimage = py.transform.scale(self.image, self.rect.size)
             self.rimage = self.image.copy()
             self.rect.center = self.tile.rect.center
             if self.moves <= 0:
                 self.rimage.fill((150, 150, 150), special_flags=py.BLEND_MULT)
-        
-        if self.drag and self.tile == None:
-            self.rect.x = v.mouse_pos[0] - self.dragPoint[0]
-            self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
         
         if self.drag and self.tile != None:
             self.preCard = []
@@ -409,7 +483,6 @@ class gameCard(py.sprite.Sprite):
             if v.hoverTile == None:
                 self.rarrow = None
         self.draw()
-
 class castle(py.sprite.Sprite):
     
     def __init__(self, friendly):
