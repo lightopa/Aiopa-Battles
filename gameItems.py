@@ -255,7 +255,7 @@ class gameCard(py.sprite.Sprite):
     def _hand_update(self):
         if self.cycle < 30 and self.hovered:
             self.cycle += 4
-        if self.cycle > 0 and not self.hovered:
+        if self.cycle > 0 and not self.hovered and not self.drag:
             self.cycle -= 4  
         if self.cycle >= 30:
             self.cycle = 30
@@ -334,6 +334,19 @@ class spellCard(gameCard):
                         target._render()
                     self.kill()
         self._hand_update()
+        if self.drag and v.hoverTile != None:
+            for card in v.gameCards:
+                if card.tile == v.hoverTile:
+                    self.rect.x = v.hoverTile.rect.x - self.rect.width - 10
+                    if "damage" in self.card.effects.keys():
+                        drect = py.Rect(0, 0, 100, 100)
+                        drect.center = v.hoverTile.rect.center
+                        self.preCard.append((self.damage, drect))
+                        font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
+                        dmg = font.render(str(-self.card.effects["damage"]), 1, (0, 0, 0))
+                        drect = dmg.get_rect()
+                        drect.center = v.hoverTile.rect.center
+                        self.preCard.append((dmg, drect))
         self.draw()
 
 class minionCard(gameCard):
