@@ -285,6 +285,13 @@ class gameCard(py.sprite.Sprite):
             self.hovered = True
         else:
             self.hovered = False
+        
+        if v.gameTurn != None and v.gameTurn["player"] != v.unid:
+            self.drag = False
+            v.dragCard = None
+            v.availableTiles = None
+            self.preCard = []
+            self.postCard = []
     
     
     def update(self):
@@ -310,6 +317,7 @@ class spellCard(gameCard):
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
                     v.dragCard = self
                     v.availableTiles = py.sprite.Group()
+
             if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
                 self.drag = False
                 v.dragCard = None
@@ -372,6 +380,7 @@ class minionCard(gameCard):
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
                     v.dragCard = self
                     v.availableTiles = py.sprite.Group()
+                
                 if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
                     self.drag = False
                     v.dragCard = None
