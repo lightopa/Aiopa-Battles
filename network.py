@@ -64,35 +64,40 @@ def checkQueue():
 def gameLoop():
     """Continuously checks the server for updates, and send any local updates to the server"""
     def _gameLoop():
-        while True:
-            netTime = time.time()
-            if v.networkHalt == True:
-                return
-            if v.gameTurn != None:
-                sentEvents = []
-                if len(v.networkEvents) > 0:
-                    #print("Out events", v.networkEvents)
-                    sentEvents = list(v.networkEvents)
-                    payload = {"unid": v.unid, "game": v.game, "type": "update", "events": sentEvents}
-                    jpayload = json.dumps(str(payload))
-                    r = requests.post(v.server + "game_loop/", data=jpayload)
-                else:
-                    payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
-                    jpayload = json.dumps(str(payload))
-                    r = requests.post(v.server + "game_loop/", data=jpayload)
-                if r.status_code != 200:
-                    print(r.status_code)
-                    print(r.text)
-                else:
-                    v.networkEvents = [e for e in v.networkEvents if not e in sentEvents]
-                    data = ast.literal_eval(r.text)
-                    #if data["events"] != []:
-                    #    print("In events", data["events"])
-                    v.networkChanges.extend(data["events"])
-            #print("Network Time:", time.time() - netTime)
-            v.ping.append(time.time() - netTime)
-            while time.time() - netTime < 0.3:
-                pass
+        try:
+            while True:
+                netTime = time.time()
+                if v.networkHalt == True:
+                    return
+                if v.gameTurn != None:
+                    sentEvents = []
+                    if len(v.networkEvents) > 0:
+                        #print("Out events", v.networkEvents)
+                        sentEvents = list(v.networkEvents)
+                        payload = {"unid": v.unid, "game": v.game, "type": "update", "events": sentEvents}
+                        jpayload = json.dumps(str(payload))
+                        r = requests.post(v.server + "game_loop/", data=jpayload)
+                    else:
+                        payload = {"unid": v.unid, "game": v.game, "type": "fetch"}
+                        jpayload = json.dumps(str(payload))
+                        r = requests.post(v.server + "game_loop/", data=jpayload)
+                    if r.status_code != 200:
+                        print(r.status_code)
+                        print(r.text)
+                    else:
+                        v.networkEvents = [e for e in v.networkEvents if not e in sentEvents]
+                        data = ast.literal_eval(r.text)
+                        #if data["events"] != []:
+                        #    print("In events", data["events"])
+                        v.networkChanges.extend(data["events"])
+                #print("Network Time:", time.time() - netTime)
+                v.ping.append(time.time() - netTime)
+                while time.time() - netTime < 0.3:
+                    pass
+        except SyntaxError:
+            print(r.text)
+            v.serverCrash = True
+            return
     
     t3 = threading.Thread(target=_gameLoop)
     t3.start()
@@ -134,22 +139,26 @@ def changes():
         if event["type"] == "move":
             pos = event["position"]
             pos = (3 - pos[0], pos[1])
+            c = None
             for card in v.gameCards:
                 if card.unid == event["unid"]:
                     c = card
+            if c == None:
+                continue
             for tile in v.tiles:
                 if tile.pos == pos:
                     path = pathfind.pathfind(c.tile.pos, pos, pathfind.get_grid())
                     c.tile = tile
             
             c.movePath = path
-            
-                    
         
         if event["type"] == "movable":
+            c = None
             for card in v.gameCards:
                 if card.unid == event["unid"]:
                     c = card
+            if c == None:
+                continue
             if event["movable"]:
                 c.moves = 1
             else:
@@ -164,8 +173,9 @@ def changes():
                     t = card
             c.changes["health"] -= t.card.attack + t.changes["attack"]
             t.changes["health"] -= c.card.attack + c.changes["attack"]
-            c._render((100, 140))
-            t._render((100, 140))
+            c.attack(t)
+            #c._render((100, 140))
+            #t._render((100, 140))
         
         if event["type"] == "spell":
             for card in v.gameCards:

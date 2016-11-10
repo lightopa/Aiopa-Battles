@@ -176,6 +176,8 @@ class timer(py.sprite.Sprite):
         change(v.screen.blit(self.mask, (self.rect.x + v.timeLeft/v.turnLength * 600, self.rect.y + 1.5), (0, 0, 600 - v.timeLeft/v.turnLength * 600, 10)))
     
     def update(self):
+        while v.gameTurn == None:
+            py.time.delay(10)
         v.timeLeft = v.turnLength - (time.time() - v.gameTurn["time"])
         if v.timeLeft/v.turnLength > 0.25:
             self.image.set_alpha(200 - v.timeLeft/v.turnLength * 200)
@@ -188,3 +190,17 @@ class timer(py.sprite.Sprite):
         else:
             self.rimage = self.image
         self.draw()
+
+class CrashScreen(py.sprite.Sprite):
+    def __init__(self):
+        self.font = py.font.Font("assets/fonts/Galdeano.ttf", 60)
+        self.button = menuItems.Button("Return to main menu", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "next", centred=True)
+    
+    def update(self):
+        v.screen.fill((50, 100, 200))
+        change(py.Rect(0, 0, 1280, 720))
+        if v.serverCrash:
+            render = self.font.render("Oops, the client received something weird from the server.", 1, (255, 255, 255))
+            v.screen.blit(render, (640 - render.get_rect().width/2, 360 - render.get_rect().height/2))
+            
+        

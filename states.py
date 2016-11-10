@@ -144,6 +144,8 @@ def game():
     
     change(py.Rect(0, 0, 1280, 720))
     
+    crashScreen = guiItems.CrashScreen()
+    
     while True:
         py.event.pump()
         v.events = []
@@ -180,6 +182,10 @@ def game():
                 v.dragCard.draw()
             else:
                 fade.fadeOut()
+                
+            for card in v.gameCards:
+                if card.type == "minion" and card.attackTarget != None:
+                    card.draw()
             
             if coinScreen.state == "out":
                 coinScreen.black.fadeOut() 
@@ -199,7 +205,6 @@ def game():
                 v.networkEvents.append({"type": "turn"})
                 v.gameTurn["player"] = None
             
-            
             network.changes()
             
         if v.pause:
@@ -217,6 +222,9 @@ def game():
             pName.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
+        
+        if v.serverCrash:
+            crashScreen.update()
         
         debug.update()
         refresh()

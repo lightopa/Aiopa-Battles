@@ -37,5 +37,6 @@ opHealth = 20
 game = None
 networkHalt = False
 serverConnected = False
+serverCrash = False
 gameStarter = None
 gameTurn = None

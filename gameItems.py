@@ -365,6 +365,11 @@ class minionCard(gameCard):
         self.movePath = None
         self.moveCycle = 0
         
+        self.attackTarget = None
+        self.attackCycle = 0
+        
+        self.deathDelay = 0
+        
         self.update()
     
     def _render(self, size=None):
@@ -406,16 +411,42 @@ class minionCard(gameCard):
             diff = (diff[0] * (self.moveCycle % 50), diff[1] * (self.moveCycle % 50))
             self.rect.center = (basex + diff[0], basey + diff[1])
             self.moveCycle += 6
+    
+    def attack(self, target=None):
+        if target != None:
+            self.attackTarget = target
+        if self.attackTarget != None and not self.movePath:
+            if self.attackCycle >= 100:
+                self.attackCycle = 0
+                self.attackTarget._render((100, 140))
+                self.attackTarget = None
+                self._render((100, 140))
+                return
+            self.rect.center = self.tile.rect.center
+            for tile in v.tiles:
+                if self.attackTarget.tile == tile:
+                    pos = tile.pos
             
-            
+            if pos[0] > self.tile.pos[0]:
+                self.rect.x += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+            if pos[0] < self.tile.pos[0]:
+                self.rect.x -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+            if pos[1] > self.tile.pos[1]:
+                self.rect.y += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+            if pos[1] < self.tile.pos[1]:
+                self.rect.y -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+            self.attackCycle += 6
         
     def update(self):
         self._pre_update()
         if self.card.health + self.changes["health"] <= 0:
-            self.kill()
+            if not self.movePath and self.attackTarget == None:
+                self.deathDelay += 1
+                if self.deathDelay >= 20:
+                    self.kill()
         
         for event in v.events:
-            if v.gameTurn != None and v.gameTurn["player"] == v.unid:
+            if v.gameTurn != None and v.gameTurn["player"] == v.unid and self.alive():
                 if self.hovered and event.type == py.MOUSEBUTTONDOWN and event.button == 1 and self.player == v.unid:
                     self.drag = True
                     self.dragPoint = (v.mouse_pos[0] - self.rect.x, v.mouse_pos[1] - self.rect.y)
@@ -460,8 +491,7 @@ class minionCard(gameCard):
                                     v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
                                     self.changes["health"] -= target.card.attack + target.changes["attack"]
                                     target.changes["health"] -= self.card.attack + self.changes["attack"]
-                                    self._render((100, 140))
-                                    target._render((100, 140))
+                                    self.attackTarget = target
                                     if target.changes["health"] + target.card.health <= 0:
                                         v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
                                 
@@ -471,10 +501,11 @@ class minionCard(gameCard):
                                     self.tile = v.hoverTile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
                                     self.moves -= len(path) - 1
-                    if self.moves <= 0 and self.alive():
-                        v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": False})
-                    else:
-                        v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": True})
+                    if self.alive():
+                        if self.moves <= 0:
+                            v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": False})
+                        else:
+                            v.networkEvents.append({"type": "movable", "unid": self.unid, "movable": True})
         if self.tile == None:
             self._hand_update()
         else:
@@ -484,6 +515,8 @@ class minionCard(gameCard):
                 self.move()
             else:
                 self.rect.center = self.tile.rect.center
+            if self.attackTarget != None:
+                self.attack()
             if self.moves <= 0:
                 self.rimage.fill((150, 150, 150), special_flags=py.BLEND_MULT)
         
