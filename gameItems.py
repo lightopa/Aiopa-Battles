@@ -324,6 +324,7 @@ class spellCard(gameCard):
                         target.changes["health"] -= self.card.effects["damage"]
                         v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid})
                         target._render()
+                    self.kill()
         self._hand_update()
         self.draw()
 
