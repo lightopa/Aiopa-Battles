@@ -1,5 +1,6 @@
 import sys
 import time
+import pathfind
 try:
     import requests
 except:
@@ -138,7 +139,12 @@ def changes():
                     c = card
             for tile in v.tiles:
                 if tile.pos == pos:
+                    path = pathfind.pathfind(c.tile.pos, pos, pathfind.get_grid())
                     c.tile = tile
+            
+            c.movePath = path
+            
+                    
         
         if event["type"] == "movable":
             for card in v.gameCards:

@@ -361,6 +361,9 @@ class minionCard(gameCard):
             self.player = v.unid
         else:
             self.player = player
+            
+        self.movePath = None
+        self.moveCycle = 0
         
         self.update()
     
@@ -381,6 +384,30 @@ class minionCard(gameCard):
         self.image.blit(render, (610/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
         
         self._render_description()
+    
+    def move(self, path=None):
+        if path != None:
+            self.movePath = path
+        if self.movePath:
+            curIndex = int(self.moveCycle / 50)
+            if curIndex > len(self.movePath) - 2:
+                self.movePath = []
+                self.moveCycle = 0
+                self.rect.center = self.tile.rect.center
+                return
+            curPoint = self.movePath[curIndex]
+            endPoint = self.movePath[curIndex + 1]
+            #py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
+            basex = 415 + curPoint[0] * 150
+            basey = 130 + curPoint[1] * 150
+            endx = 415 + endPoint[0] * 150
+            endy = 130 + endPoint[1] * 150
+            diff = ((endx - basex) / 50, (endy - basey) / 50)
+            diff = (diff[0] * (self.moveCycle % 50), diff[1] * (self.moveCycle % 50))
+            self.rect.center = (basex + diff[0], basey + diff[1])
+            self.moveCycle += 6
+            
+            
         
     def update(self):
         self._pre_update()
@@ -420,6 +447,7 @@ class minionCard(gameCard):
                             if v.hoverTile != self.tile:
                                 if v.hoverTile.attack:
                                     path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                    self.movePath = path[:-1]
                                     pos = path[-2]
                                     self.moves = 0
                                     for tile in v.tiles:
@@ -439,6 +467,7 @@ class minionCard(gameCard):
                                 
                                 else:
                                     path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                    self.movePath = path
                                     self.tile = v.hoverTile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": self.tile.pos})
                                     self.moves -= len(path) - 1
@@ -451,7 +480,10 @@ class minionCard(gameCard):
         else:
             self.rect = py.Rect((0, 0), (100, 140))
             self.rimage = self.image.copy()
-            self.rect.center = self.tile.rect.center
+            if self.movePath:
+                self.move()
+            else:
+                self.rect.center = self.tile.rect.center
             if self.moves <= 0:
                 self.rimage.fill((150, 150, 150), special_flags=py.BLEND_MULT)
         
