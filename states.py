@@ -143,9 +143,7 @@ def game():
     network.gameLoop()
     
     change(py.Rect(0, 0, 1280, 720))
-    
-    crashScreen = guiItems.CrashScreen()
-    
+        
     while True:
         py.event.pump()
         v.events = []
@@ -157,7 +155,13 @@ def game():
         for event in v.events:
             if event.type == py.QUIT:
                 v.networkHalt = True
+                network.gameLeave()
                 sys.exit()
+        if v.gameStop != None:
+            finish()
+            return
+        
+        network.changes()
         
         if not v.pause:
             v.tiles.update()
@@ -205,7 +209,6 @@ def game():
                 v.networkEvents.append({"type": "turn"})
                 v.gameTurn["player"] = None
             
-            network.changes()
             
         if v.pause:
             for s in v.tiles:
@@ -223,8 +226,36 @@ def game():
             if v.pauseType == "coin":
                 coinScreen.update()
         
-        if v.serverCrash:
-            crashScreen.update()
-        
         debug.update()
+        refresh()
+
+def finish():
+    """The state that is run after a game has ended"""
+    buttons = py.sprite.Group()
+    buttons.add(menuItems.Button("Return to main menu", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "title", centred=True))
+    
+    texts = py.sprite.Group()
+    if v.gameStop == "disconnect":
+        texts.add(menuItems.Text("Your opponent disconnected", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
+    if v.gameStop == "timeout":
+        texts.add(menuItems.Text("Your opponent timed out", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
+    if v.gameStop == "bad":
+        texts.add(menuItems.Text("Bad input from server (view logs)", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
+    
+    change(py.Rect(0, 0, 1280, 720))
+    
+    while True:
+        py.event.pump()
+        v.screen.fill((50, 100, 200))
+        v.events = []
+        v.events = py.event.get()
+        
+        buttons.update()
+        texts.update()
+        
+        for button in buttons:
+            if button.ID == "title":
+                if button.pressed():
+                    mainMenu()
+                    return
         refresh()

@@ -96,7 +96,7 @@ def gameLoop():
                     pass
         except SyntaxError:
             print(r.text)
-            v.serverCrash = True
+            v.gameStop = "bad"
             return
     
     t3 = threading.Thread(target=_gameLoop)
@@ -115,6 +115,12 @@ def gameJoin():
         v.opName = data["opName"]
     t2 = threading.Thread(target=_gameJoin)
     t2.start()
+    
+def gameLeave():
+    """Will tell the server that the client has disconnected"""
+    payload = {"unid": v.unid, "game": v.game}
+    jpayload = json.dumps(str(payload))
+    r = requests.post(v.server + "game_leave/", data=jpayload)
 
 def getCards():
     """Will connect to the server and download the list of cards"""
@@ -195,6 +201,9 @@ def changes():
                     if v.gameTurn["player"] == v.opUnid:
                         if s.player == v.opUnid:
                             s.moves = 1
+        if event["type"] == "stop":
+            v.gameStop = event["reason"]
+            v.networkHalt = True
     v.networkChanges = []
 
 
