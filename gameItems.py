@@ -1,7 +1,7 @@
 import pygame as py
 import variables as v
 import random
-from renderer import *
+from renderer import change
 import pathfind
 
 class SpriteSheet():
@@ -43,7 +43,7 @@ def add_card(card, order=0, **kwargs):
         v.gameCards.add(spellCard(card, order, **kwargs))
     
 class tile(py.sprite.Sprite):
-    def __init__(self, pos, style):
+    def __init__(self, pos, style, castle=None):
         """Creates a single game tile.
         
         Tiles are arranged in a grid, and can have cards placed on them.
@@ -56,24 +56,34 @@ class tile(py.sprite.Sprite):
         sheet = SpriteSheet("assets/images/tiles.png", 6, 5)
         size = 150
         
-        self.border = py.Surface((size, size), py.SRCALPHA, 32).convert_alpha()
-        py.draw.rect(self.border, (255, 255, 255), (0, 0, size, size), 3)
-        if style == "grass":
-            self.image = sheet.images[random.choice([0, 5])]
-            self.border.fill((200, 255, 200, 50), special_flags=py.BLEND_RGBA_ADD)
-        if style == "board":
-            self.image = py.Surface((size, size), py.SRCALPHA, 32)
-            self.image.fill((250, 230, 200, 100))
-            self.border.fill((150, 130, 100, 150), special_flags=py.BLEND_RGBA_MIN)
+        if castle == None:
+            self.border = py.Surface((size, size), py.SRCALPHA, 32).convert_alpha()
+            py.draw.rect(self.border, (255, 255, 255), (0, 0, size, size), 3)
+            if style == "grass":
+                self.image = sheet.images[random.choice([0, 5])]
+                self.border.fill((200, 255, 200, 50), special_flags=py.BLEND_RGBA_ADD)
+            if style == "board":
+                self.image = py.Surface((size, size), py.SRCALPHA, 32)
+                self.image.fill((250, 230, 200, 100))
+                self.border.fill((150, 130, 100, 150), special_flags=py.BLEND_RGBA_MIN)
         
-        self.image = py.transform.scale(self.image, (size, size))
-        self.image.blit(self.border, (0, 0))
-        self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
-
+            self.image = py.transform.scale(self.image, (size, size))
+            self.image.blit(self.border, (0, 0))
+            self.rect = py.Rect(((640 - size*2) + pos[0] * size, (280 - size*1.5) + pos[1] * size), (size, size))
+            self.rimage = self.image
+        else:            
+            if castle == True:
+                self.image = py.image.load("assets/images/dashesP.png")
+                self.rect = py.Rect(40, 55, 300, 450)
+            if castle == False:
+                self.image = py.image.load("assets/images/dashesE.png")
+                self.rect = py.Rect(940, 55, 300, 450)
+            self.rimage = py.Surface((0, 0))
+        
+        self.castle = castle
         self.hovered = False
         
         self.pos = pos
-        self.rimage = self.image
         self.attack = False
     
     def draw(self):
@@ -93,17 +103,36 @@ class tile(py.sprite.Sprite):
                     if self.pos[0] < 2:
                         v.availableTiles.add(self)
                 else:
-                    path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
-                    a = False
-                    for card in v.gameCards:
-                        if card.tile == self:
-                            if card.player == v.opUnid:
-                                a = True
-                                path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
-                    if path != False and len(path) - 1 <= v.dragCard.moves:
-                        v.availableTiles.add(self)
-                        if a:
-                            self.attack = True
+                    if self.castle == None:
+                        path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
+                        a = False
+                        for card in v.gameCards:
+                            if card.tile == self:
+                                if card.player == v.opUnid:
+                                    a = True
+                                    path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
+                        if path != False and len(path) - 1 <= v.dragCard.moves:
+                            v.availableTiles.add(self)
+                            if a:
+                                self.attack = True
+                    else:
+                        if self.castle == False:
+                            paths = [pathfind.pathfind((v.dragCard.tile.pos[0] + 1, v.dragCard.tile.pos[1]), (self.pos[0] + 1, 0), pathfind.get_grid(skip=[], castle=True)), 
+                                     pathfind.pathfind((v.dragCard.tile.pos[0] + 1, v.dragCard.tile.pos[1]), (self.pos[0] + 1, 1), pathfind.get_grid(skip=[], castle=True)), 
+                                     pathfind.pathfind((v.dragCard.tile.pos[0] + 1, v.dragCard.tile.pos[1]), (self.pos[0] + 1, 2), pathfind.get_grid(skip=[], castle=True))]
+                            paths = [p for p in paths if p != False]
+                            if len(paths) > 0:
+                                path = paths[0]
+                                for p in paths:
+                                    if len(p) < len(path):
+                                        path = p
+                            else:
+                                path = False
+                                    
+                            if path != False and len(path) - 1 <= v.dragCard.moves:
+                                v.availableTiles.add(self)
+                                self.attack = True
+                        
             if v.dragCard.type == "spell":
                 for card in v.gameCards:
                     if card.tile == self:
@@ -125,12 +154,19 @@ class tile(py.sprite.Sprite):
                 else:
                     self.rimage.fill((255, 100, 100, 200), special_flags=py.BLEND_RGBA_MULT)
         
+        if self.castle != None:
+            if self.attack:
+                self.rimage = self.image.copy()
+            else:
+                self.rimage = py.Surface((0, 0))
+        
         if self.hovered:
             v.hoverTile = self
-            self.rimage.fill((255, 255, 255, 200))
-        elif self.attack:
-            self.rimage.fill((255, 0, 0, 200), special_flags=py.BLEND_MULT)
-        
+            if self.attack:
+                self.rimage.fill((200, 200, 200, 0), special_flags=py.BLEND_RGBA_MAX)
+            else:
+                self.rimage.fill((255, 255, 255, 200))
+            
         self.draw()
             
 
@@ -415,26 +451,41 @@ class minionCard(gameCard):
     def attack(self, target=None):
         if target != None:
             self.attackTarget = target
-        if self.attackTarget != None and not self.movePath:
-            if self.attackCycle >= 100:
-                self.attackCycle = 0
-                self.attackTarget._render((100, 140))
-                self.attackTarget = None
-                self._render((100, 140))
-                return
-            self.rect.center = self.tile.rect.center
-            for tile in v.tiles:
-                if self.attackTarget.tile == tile:
-                    pos = tile.pos
-            
-            if pos[0] > self.tile.pos[0]:
-                self.rect.x += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
-            if pos[0] < self.tile.pos[0]:
-                self.rect.x -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
-            if pos[1] > self.tile.pos[1]:
-                self.rect.y += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
-            if pos[1] < self.tile.pos[1]:
-                self.rect.y -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+        elif self.attackTarget != None and not self.movePath:
+            if type(self.attackTarget) == minionCard:
+                if self.attackCycle >= 100:
+                    self.attackCycle = 0
+                    self.attackTarget._render((100, 140))
+                    self.attackTarget = None
+                    self._render((100, 140))
+                    return
+                self.rect.center = self.tile.rect.center
+                for tile in v.tiles:
+                    if self.attackTarget.tile == tile:
+                        pos = tile.pos
+                
+                if pos[0] > self.tile.pos[0]:
+                    self.rect.x += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if pos[0] < self.tile.pos[0]:
+                    self.rect.x -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if pos[1] > self.tile.pos[1]:
+                    self.rect.y += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if pos[1] < self.tile.pos[1]:
+                    self.rect.y -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+            else:
+                if self.attackCycle >= 100:
+                    self.attackCycle = 0
+                    self.attackTarget = None
+                    self._render((100, 140))
+                    return
+                if self.attackTarget == "enemy":
+                    self.rect.x += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if self.attackTarget == "player":
+                    self.rect.x -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if self.tile.pos[1] > 1:
+                    self.rect.y -= -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
+                if self.tile.pos[1] < 1:
+                    self.rect.y += -0.06 * (self.attackCycle ** 2) + 6 * self.attackCycle
             self.attackCycle += 6
         
     def update(self):
@@ -477,7 +528,8 @@ class minionCard(gameCard):
                         else:
                             if v.hoverTile != self.tile:
                                 if v.hoverTile.attack:
-                                    path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                                    path = pathfind.pathfind((self.tile.pos[0] + 1, self.tile.pos[1]), (v.hoverTile.pos[0] + 1, self.tile.pos[1]), pathfind.get_grid(skip=[v.hoverTile], castle=True))
+                                    path = [(p[0]-1, p[1]) for p in path]
                                     self.movePath = path[:-1]
                                     pos = path[-2]
                                     self.moves = 0
@@ -485,17 +537,24 @@ class minionCard(gameCard):
                                         if tile.pos == pos:
                                             self.tile = tile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
-                                    for card in v.gameCards:
-                                        if card.tile == v.hoverTile:
-                                            target = card
-                                    v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
-                                    self.changes["health"] -= target.card.attack + target.changes["attack"]
-                                    target.changes["health"] -= self.card.attack + self.changes["attack"]
-                                    self.attackTarget = target
-                                    if target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
-                                        v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
-                                        self.movePath = path
-                                        self.tile = v.hoverTile
+                                    
+                                    if v.hoverTile.castle == None:
+                                        for card in v.gameCards:
+                                            if card.tile == v.hoverTile:
+                                                target = card
+                                        v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
+                                        self.changes["health"] -= target.card.attack + target.changes["attack"]
+                                        target.changes["health"] -= self.card.attack + self.changes["attack"]
+                                        self.attackTarget = target
+                                        if target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
+                                            v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
+                                            self.movePath = path
+                                            self.tile = v.hoverTile
+                                    else:
+                                        v.networkEvents.append({"type": "damage", "unid": self.unid, "target": v.opUnid})
+                                        v.opHealth -= self.card.attack + self.changes["attack"]
+                                        self.attackTarget = "enemy"
+                                        
                                 else:
                                     path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
                                     self.movePath = path
@@ -525,7 +584,11 @@ class minionCard(gameCard):
             self.preCard = []
             self.postCard = []
             if v.hoverTile != None and v.hoverTile != self.tile:
-                path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                if v.hoverTile.castle == None:
+                    path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
+                else:
+                    path = pathfind.pathfind((self.tile.pos[0] + 1, self.tile.pos[1]), (v.hoverTile.pos[0] + 1, self.tile.pos[1]), pathfind.get_grid(skip=[v.hoverTile], castle=True))
+                    path = [(p[0]-1, p[1]) for p in path]
                 for i in range(len(path) - 1):
                     arrowRect = py.Rect(0, 0, 100, 100)
                     if path[i + 1][0] > path[i][0]:
@@ -554,18 +617,18 @@ class minionCard(gameCard):
                     drect = dmg.get_rect()
                     drect.center = v.hoverTile.rect.center
                     self.preCard.append((dmg, drect))
-                    
-                    for card in v.gameCards:
-                        if card.tile == v.hoverTile:
-                            target = card
-                    drect = py.Rect(0, 0, 100, 100)
-                    drect.center = self.tile.rect.center
-                    self.postCard.append((self.damage, drect))
-                    font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
-                    dmg = font.render(str(-target.card.attack), 1, (0, 0, 0))
-                    drect = dmg.get_rect()
-                    drect.center = self.tile.rect.center
-                    self.postCard.append((dmg, drect))
+                    if v.hoverTile.castle == None:
+                        for card in v.gameCards:
+                            if card.tile == v.hoverTile:
+                                target = card
+                        drect = py.Rect(0, 0, 100, 100)
+                        drect.center = self.tile.rect.center
+                        self.postCard.append((self.damage, drect))
+                        font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
+                        dmg = font.render(str(-target.card.attack), 1, (0, 0, 0))
+                        drect = dmg.get_rect()
+                        drect.center = self.tile.rect.center
+                        self.postCard.append((dmg, drect))
                 
             if v.hoverTile == self.tile:
                 self.rarrow = None

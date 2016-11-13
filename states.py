@@ -112,6 +112,8 @@ def game():
     for y in range(0, 3):
         for x in range(0, 4):
             v.tiles.add(gameItems.tile((x, y), "board"))
+    v.tiles.add(gameItems.tile((-1, 0), "board", True))
+    v.tiles.add(gameItems.tile((4, 0), "board", False))
     
     v.gameCards = py.sprite.Group() 
     v.deck = list(v.cards.values())

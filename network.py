@@ -174,12 +174,16 @@ def changes():
             for card in v.gameCards:
                 if card.unid == event["unid"]:
                     c = card
-            for card in v.gameCards:
-                if card.unid == event["target"]:
-                    t = card
-            c.changes["health"] -= t.card.attack + t.changes["attack"]
-            t.changes["health"] -= c.card.attack + c.changes["attack"]
-            c.attack(t)
+            if event["target"] == v.unid:
+                v.pHealth -= c.card.attack + c.changes["attack"]
+                c.attack("player")
+            else:
+                for card in v.gameCards:
+                    if card.unid == event["target"]:
+                        t = card
+                c.changes["health"] -= t.card.attack + t.changes["attack"]
+                t.changes["health"] -= c.card.attack + c.changes["attack"]
+                c.attack(t)
             #c._render((100, 140))
             #t._render((100, 140))
         
