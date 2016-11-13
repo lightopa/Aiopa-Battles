@@ -12,6 +12,9 @@ def boot():
     py.init()
     v.display = py.display.set_mode((640, 360))
     v.screen = py.Surface((1280, 720))
+    py.display.set_caption("Aiopa Battles")
+    icon = py.image.load("assets/images/icons/icon.ico")
+    py.display.set_icon(icon)
     v.clock = py.time.Clock() 
     mainMenu()
 
