@@ -492,9 +492,10 @@ class minionCard(gameCard):
                                     self.changes["health"] -= target.card.attack + target.changes["attack"]
                                     target.changes["health"] -= self.card.attack + self.changes["attack"]
                                     self.attackTarget = target
-                                    if target.changes["health"] + target.card.health <= 0:
+                                    if target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
                                         v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
-                                
+                                        self.movePath = path
+                                        self.tile = v.hoverTile
                                 else:
                                     path = pathfind.pathfind(self.tile.pos, v.hoverTile.pos, pathfind.get_grid(skip=[v.hoverTile]))
                                     self.movePath = path
