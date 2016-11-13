@@ -25,6 +25,7 @@ cards = {}
 deck = []
 tiles = None
 gameCards = None
+gameDeck = None
 availableTiles = None
 dragCard = None
 hoverTile = None

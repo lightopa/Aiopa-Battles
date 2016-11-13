@@ -121,6 +121,10 @@ def game():
         gameItems.add_card(v.deck[i], i)
     v.deck = v.deck[3:]
     
+    v.gameDeck = py.sprite.OrderedUpdates()
+    for i in range(len(v.deck)):
+        v.gameDeck.add(gameItems.blankCard(i))
+    
     debug = guiItems.debug()
     
     castles = py.sprite.Group()
@@ -168,6 +172,7 @@ def game():
         if not v.pause:
             v.tiles.update()
             v.gameCards.update()
+            v.gameDeck.update()
             castles.update()
             turnButton.update()
             turnText.update()
@@ -191,6 +196,8 @@ def game():
                 
             for card in v.gameCards:
                 if card.type == "minion" and card.attackTarget != None:
+                    card.draw()
+                if card.intro == True:
                     card.draw()
             
             if coinScreen.state == "out":
@@ -216,6 +223,8 @@ def game():
             for s in v.tiles:
                 s.draw()
             for s in v.gameCards:
+                s.draw()
+            for s in v.gameDeck:
                 s.draw()
             for s in castles:
                 s.draw()

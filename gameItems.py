@@ -190,7 +190,7 @@ class card:
         self.id = attributes["id"]
         
 class gameCard(py.sprite.Sprite):
-    def __init__(self, cardClass, order=0, unid=None, changes={}, renSize=(770, 1105)):
+    def __init__(self, cardClass, order=0, unid=None, changes={}, renSize=(155, 220), intro=False):
         """A card that can be placed in the game.
         
         Args:
@@ -232,6 +232,9 @@ class gameCard(py.sprite.Sprite):
         
         self.preCard = []
         self.postCard = []
+        
+        self.intro = intro
+        self.introCycle = 1
     
     def _base_render(self, size):
         if size != None:
@@ -275,6 +278,18 @@ class gameCard(py.sprite.Sprite):
         render = font.render(line, 1, (0, 0, 0))
         self.image.blit(render, (100/770 * self.size[0], 670/1105 * self.size[1] + lineNum * render.get_rect().height))
         
+    def _intro(self):
+        pos = (660, 330)
+        end = 415 + self.order * 135, 710 - self.rect.size[1]/2
+        diff = (end[0] - pos[0], end[1] - pos[1])
+        diff = (diff[0]/40, diff[1]/40)
+        if self.introCycle >= 40:
+            self.intro = False
+        pos = (pos[0] + diff[0] * self.introCycle, pos[1] + diff[1] * self.introCycle)
+        self.rect.center = pos
+        self.rimage = py.transform.scale(self.image, (int(self.rect.size[0] * self.introCycle/40), self.rect.size[1]))
+        self.introCycle += 2
+    
     def next_turn(self):
         self.moves = self.card.speed + self.changes["speed"]
     
@@ -289,10 +304,11 @@ class gameCard(py.sprite.Sprite):
         
     
     def _hand_update(self):
-        if self.cycle < 30 and self.hovered:
-            self.cycle += 4
-        if self.cycle > 0 and not self.hovered and not self.drag:
-            self.cycle -= 4  
+        if not self.intro:
+            if self.cycle < 30 and self.hovered:
+                self.cycle += 4
+            if self.cycle > 0 and not self.hovered and not self.drag:
+                self.cycle -= 4  
         if self.cycle >= 30:
             self.cycle = 30
         if self.cycle <= 0:
@@ -302,7 +318,8 @@ class gameCard(py.sprite.Sprite):
         
         self.rect = py.Rect((0, 0), (125 * sMod, 175 * sMod))
         self.rimage = py.transform.scale(self.image, self.rect.size)
-        self.rect.center = (415 + self.order * (125 + 10), 710 - self.rect.size[1]/2)
+        if not self.intro:
+            self.rect.center = (415 + self.order * (125 + 10), 710 - self.rect.size[1]/2)
         for card in v.gameCards:
             if card.tile == None and card.cycle > 0:
                 if card.order < self.order:
@@ -313,6 +330,9 @@ class gameCard(py.sprite.Sprite):
         if self.drag:
             self.rect.x = v.mouse_pos[0] - self.dragPoint[0]
             self.rect.y = v.mouse_pos[1] - self.dragPoint[1]
+        
+        if self.intro:
+            self._intro()
     
     
     def _pre_update(self):
@@ -334,8 +354,8 @@ class gameCard(py.sprite.Sprite):
         self.draw()
 
 class spellCard(gameCard):
-    def __init__(self, cardClass, order=0, changes={}, renSize=(770, 1105)):
-        super().__init__(cardClass, order=order, changes=changes, renSize=renSize)
+    def __init__(self, cardClass, order=0, changes={}, renSize=(155, 220), intro=False):
+        super().__init__(cardClass, order=order, changes=changes, renSize=renSize, intro=intro)
         self.tile = None
         self._render(renSize)
         self.update()
@@ -386,8 +406,8 @@ class spellCard(gameCard):
         self.draw()
 
 class minionCard(gameCard):
-    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(770, 1105)):
-        super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize)
+    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(155, 220), intro=False):
+        super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize, intro=intro)
         self.tile = tile
         
         self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
@@ -658,4 +678,36 @@ class castle(py.sprite.Sprite):
         change(v.screen.blit(self.image, self.rect))
     
     def update(self):
+        self.draw()
+
+class blankCard(py.sprite.Sprite):
+    def __init__(self, order):
+        super().__init__()
+        self.image = py.image.load("assets/images/cards/card_back.png").convert_alpha()
+        self.image = py.transform.scale(self.image, (124, 176))
+        self.rot = random.randint(-45, 45)
+        self.rimage = py.transform.rotate(self.image, self.rot)
+        self.rect = self.image.get_rect()
+        self.rect.center = (180, 630)
+        self.order = order
+        self.aniCycle = 0
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+    
+    def update(self):
+        if self.aniCycle >= 1:
+            if self.aniCycle <= 40:
+                self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
+                diff = self.rot / 40
+                self.rimage = py.transform.rotate(self.rimage, self.rot - diff * self.aniCycle)
+            if self.aniCycle < 60:
+                self.rect.x += 8 * 2
+                self.rect.y -= 5 * 2
+            if self.aniCycle >= 40 and self.aniCycle <= 60:
+                self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
+            if self.aniCycle >= 60:
+                add_card(v.deck[0], len([c for c in v.gameCards if c.tile == None]), intro=True)
+                self.kill()
+            self.aniCycle += 2
         self.draw()

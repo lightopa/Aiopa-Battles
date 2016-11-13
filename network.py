@@ -205,6 +205,12 @@ def changes():
                     if v.gameTurn["player"] == v.opUnid:
                         if s.player == v.opUnid:
                             s.moves = 1
+            if v.gameTurn["player"] == v.unid:
+                for card in v.gameDeck:
+                    if card.order == 0:
+                        card.aniCycle = 1
+                    else:
+                        card.order -= 1
         if event["type"] == "stop":
             v.gameStop = event["reason"]
             v.networkHalt = True
