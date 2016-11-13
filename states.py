@@ -149,6 +149,8 @@ def game():
     gui.add(guiItems.healthBar(False))
     gui.add(guiItems.timer())
     
+    v.effects = py.sprite.Group()
+    
     network.gameLoop()
     
     change(py.Rect(0, 0, 1280, 720))
@@ -184,6 +186,7 @@ def game():
             opName.update()
             pName.text = v.name
             pName.update()
+            v.effects.update()
             gui.update()
             
             if v.dragCard != None:
@@ -230,6 +233,8 @@ def game():
             for s in v.gameDeck:
                 s.draw()
             for s in castles:
+                s.draw()
+            for s in v.effects:
                 s.draw()
             for s in gui:
                 s.draw()

@@ -388,6 +388,7 @@ class spellCard(gameCard):
                         target.changes["health"] -= self.card.effects["damage"]
                         v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid})
                         target._render()
+                        Effect("meteor", v.hoverTile, sheet="assets/images/effects/fireball.png")
                     self.kill()
         self._hand_update()
         if self.drag and v.hoverTile != None:
@@ -710,4 +711,33 @@ class blankCard(py.sprite.Sprite):
                 add_card(v.deck[0], len([c for c in v.gameCards if c.tile == None]), intro=True)
                 self.kill()
             self.aniCycle += 2
+        self.draw()
+
+class Effect(py.sprite.Sprite):
+    def __init__(self, type, target, sheet=None, image=None):
+        super().__init__()
+        self.type = type
+        self.target = target
+        if self.type == "meteor":
+            self.sheet = SpriteSheet(sheet, 8, 1)
+            self.rimage = self.sheet.images[0]
+            self.rect = self.sheet.images[0].get_rect()
+            self.rect.center = (-40, -40)
+        self.cycle = 1
+        v.effects.add(self)
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+    
+    def update(self):
+        if self.type == "meteor":
+            if self.cycle >= 39:
+                self.kill()
+            diff = ((40 + self.target.rect.centerx)/40, (40 + self.target.rect.centery)/40)
+            self.rect.x = -40 + diff[0] * self.cycle
+            self.rect.y = -40 + diff[1] * self.cycle
+            self.rimage = self.sheet.images[int(self.cycle / 2) % 8]
+            size = self.rimage.get_rect().size
+            self.rimage = py.transform.scale(self.rimage, (int(size[0] * 2 * 20/(self.cycle + 20)), int(size[1] * 2 * 20/(self.cycle + 20))))
+        self.cycle += 1.5
         self.draw()
