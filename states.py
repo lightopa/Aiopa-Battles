@@ -153,6 +153,7 @@ def game():
     gui.add(guiItems.healthBar(True))
     gui.add(guiItems.healthBar(False))
     gui.add(guiItems.timer())
+    v.pturn = guiItems.PlayerTurn()
     
     v.effects = py.sprite.Group()
     
@@ -219,6 +220,8 @@ def game():
                 if card.intro == True:
                     card.draw()
             
+            v.pturn.update()
+            
             if coinScreen.state == "out":
                 coinScreen.black.fadeOut() 
                 
@@ -255,6 +258,7 @@ def game():
             turnText.draw()
             opName.draw()
             pName.draw()
+            v.pturn.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
         

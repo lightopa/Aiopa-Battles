@@ -194,3 +194,28 @@ class timer(py.sprite.Sprite):
         else:
             self.rimage = self.image
         self.draw()
+
+class PlayerTurn(py.sprite.Sprite):
+    def __init__(self):
+        self.image = py.image.load("assets/images/turn.png").convert_alpha()
+        self.image = py.transform.scale(self.image, (400, 150))
+        self.rect= self.image.get_rect()
+        self.rect.center = (640, 200)
+        self.cycle = 0
+        self.update()
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+    
+    def update(self):
+        if self.cycle > 0:
+            self.rimage = self.image.copy()
+            alpha = int(-0.2833 * self.cycle ** 2 + 17.00 * self.cycle)
+            self.rimage.fill((255, 255, 255, alpha), special_flags=py.BLEND_RGBA_MULT)
+            self.cycle += 1
+            if self.cycle >= 60:
+                self.cycle = 0
+        else:
+            self.rimage = py.Surface((0, 0))
+        self.draw()
+    

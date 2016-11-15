@@ -215,6 +215,7 @@ def changes():
                         card.aniCycle = 1
                     else:
                         card.order -= 1
+                v.pturn.cycle = 1
         if event["type"] == "stop":
             v.gameStop = event["reason"]
             v.networkHalt = True
