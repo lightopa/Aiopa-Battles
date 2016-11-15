@@ -17,6 +17,7 @@ ping = [0]
 cardUnid = 0
 turnLength = 40
 timeLeft = turnLength
+debug = False
 
 name = ""
 pHealth = 20

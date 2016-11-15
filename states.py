@@ -31,6 +31,11 @@ def mainMenu():
         
         v.screen.fill((0, 255, 255))
         
+        for event in v.events:
+            if event.type == py.QUIT:
+                v.networkHalt = True
+                sys.exit()
+        
         buttons.update()
         
         for button in buttons:
@@ -159,7 +164,10 @@ def game():
         py.event.pump()
         v.events = []
         v.events = py.event.get()
-        v.clock.tick(60)
+        if v.debug and py.key.get_pressed()[py.K_SPACE]:
+            v.clock.tick(10)
+        else:
+            v.clock.tick(60)
         v.hoverTile = None
         v.screen.blit(background, (0, 0))
         
@@ -168,6 +176,9 @@ def game():
                 v.networkHalt = True
                 network.gameLeave()
                 sys.exit()
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_d:
+                    v.debug = True
         if v.gameStop != None:
             finish()
             return

@@ -388,8 +388,9 @@ class spellCard(gameCard):
                         target.changes["health"] -= self.card.effects["damage"]
                         v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid})
                         target._render()
-                        Effect("meteor", v.hoverTile, sheet="assets/images/effects/fireball.png")
-                    self.kill()
+                        Effect("meteor", target=v.hoverTile, sheet="assets/images/effects/fireball.png")
+                    if not v.debug:
+                        self.kill()
         self._hand_update()
         if self.drag and v.hoverTile != None:
             for card in v.gameCards:
@@ -714,7 +715,7 @@ class blankCard(py.sprite.Sprite):
         self.draw()
 
 class Effect(py.sprite.Sprite):
-    def __init__(self, type, target, sheet=None, image=None):
+    def __init__(self, type, target=None, pos=None, sheet=None, image=None):
         super().__init__()
         self.type = type
         self.target = target
@@ -723,6 +724,14 @@ class Effect(py.sprite.Sprite):
             self.rimage = self.sheet.images[0]
             self.rect = self.sheet.images[0].get_rect()
             self.rect.center = (-40, -40)
+        if self.type == "explosion":
+            self.sheet = SpriteSheet(sheet, 2, 5)
+            self.rimage = self.sheet.images[0]
+            self.rect = self.sheet.images[0].get_rect()
+            if pos != None:
+                self.rect.center = pos
+            elif self.target != None:
+                self.rect.center = self.target.rect.center
         self.cycle = 1
         v.effects.add(self)
     
@@ -732,12 +741,18 @@ class Effect(py.sprite.Sprite):
     def update(self):
         if self.type == "meteor":
             if self.cycle >= 39:
+                Effect("explosion", target=self.target, sheet="assets/images/effects/explosion1.png")
                 self.kill()
             diff = ((40 + self.target.rect.centerx)/40, (40 + self.target.rect.centery)/40)
-            self.rect.x = -40 + diff[0] * self.cycle
-            self.rect.y = -40 + diff[1] * self.cycle
+            self.rect.centerx = -40 + diff[0] * self.cycle
+            self.rect.centery = -40 + diff[1] * self.cycle
             self.rimage = self.sheet.images[int(self.cycle / 2) % 8]
             size = self.rimage.get_rect().size
             self.rimage = py.transform.scale(self.rimage, (int(size[0] * 2 * 20/(self.cycle + 20)), int(size[1] * 2 * 20/(self.cycle + 20))))
-        self.cycle += 1.5
+            self.cycle += 1.5
+        if self.type == "explosion":
+            if self.cycle >= 18:
+                self.kill()
+            self.rimage = self.sheet.images[int(self.cycle / 2)]
+            self.cycle += 1
         self.draw()

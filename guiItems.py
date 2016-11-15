@@ -59,6 +59,10 @@ class debug(py.sprite.Sprite):
         self.label = self.font.render("ping: " + str(round((sum(v.ping[-10:])/len(v.ping[-10:]))*1000)) + "ms", 1, (100, 50, 50))
         change(v.screen.blit(self.label, (self.pos[0], self.pos[1] + 40)))
         
+        if v.debug:
+            self.label = self.font.render("debug mode: True", 1, (100, 50, 50))
+            change(v.screen.blit(self.label, (self.pos[0], self.pos[1] + 60)))
+        
       
 class coinScreen(py.sprite.Sprite):
     def __init__(self):
