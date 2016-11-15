@@ -179,6 +179,8 @@ def game():
             if event.type == py.KEYDOWN:
                 if event.key == py.K_d:
                     v.debug = True
+                if event.key == py.K_k:
+                    raise Exception("Purposefully Crashed")
         if v.gameStop != None:
             finish()
             return
