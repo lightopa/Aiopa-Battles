@@ -38,6 +38,10 @@ def queue(loadObj):
         payload = {"key": key, "name": v.name}
         jpayload = json.dumps(str(payload))
         r = requests.post(v.server + "connect/", data=jpayload)
+        if r.status_code != 200:
+            v.gameStop = "bad"
+            print(r.text)
+            return
         data = ast.literal_eval(r.text)
         if data["key"] == key:
             v.unid = data["unid"]
