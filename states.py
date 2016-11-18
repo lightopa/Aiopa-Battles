@@ -56,10 +56,14 @@ def setup():
     
     change(py.Rect(0, 0, 1280, 720))
     while True:
+        v.clock.tick(30)
         py.event.pump()
         v.events = []
         v.events = py.event.get()
-        v.clock.tick(30)
+        
+        for event in v.events:
+            if event.type == py.QUIT:
+                sys.exit()
         
         v.screen.fill((50, 100, 200))
         
@@ -98,6 +102,9 @@ def queue():
                 loading.text = loading.text + "."
                 if loading.text[-4:] == "....":
                     loading.text = loading.text[:-4]
+            if event.type == py.QUIT:
+                v.networkHalt = True
+                sys.exit()
         if v.game != None:
             v.serverConnected = True
             game()
@@ -284,6 +291,10 @@ def finish():
         v.screen.fill((50, 100, 200))
         v.events = []
         v.events = py.event.get()
+        
+        for event in v.events:
+            if event.type == py.QUIT:
+                sys.exit()
         
         buttons.update()
         texts.update()
