@@ -290,9 +290,6 @@ class gameCard(py.sprite.Sprite):
         self.rimage = py.transform.scale(self.image, (int(self.rect.size[0] * self.introCycle/40), self.rect.size[1]))
         self.introCycle += 2
     
-    def next_turn(self):
-        self.moves = self.card.speed + self.changes["speed"]
-    
     def draw(self):
         if self.preCard != []:
             for item in self.preCard:
@@ -386,7 +383,7 @@ class spellCard(gameCard):
                             target = card
                     if "damage" in self.card.effects.keys():
                         target.changes["health"] -= self.card.effects["damage"]
-                        v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid})
+                        v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid, "animation": "meteor"})
                         target._render()
                         Effect("meteor", target=v.hoverTile, sheet="assets/images/effects/fireball.png")
                     if not v.debug:
@@ -409,6 +406,8 @@ class spellCard(gameCard):
 
 class minionCard(gameCard):
     def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(155, 220), intro=False):
+        self.updateDelay = 0
+        self.schRender = True
         super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize, intro=intro)
         self.tile = tile
         
@@ -426,27 +425,36 @@ class minionCard(gameCard):
         self.attackTarget = None
         self.attackCycle = 0
         
-        self.deathDelay = 0
+        self.updateDelay = 0
+        self.schRender = False
+        self.schRenderSize = None
         
         self.update()
     
     def _render(self, size=None):
-        self._base_render(size)
-        
-        #render attack
-        font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * self.size[0]))
-        render = font.render(str(self.card.attack + self.changes["attack"]), 1, (0, 0, 0))
-        self.image.blit(render, (165/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
-        
-        #render speed
-        render = font.render(str(self.card.speed + self.changes["speed"]), 1, (0, 0, 0))
-        self.image.blit(render, (385/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
-        
-        #render health
-        render = font.render(str(self.card.health + self.changes["health"]), 1, (0, 0, 0))
-        self.image.blit(render, (610/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
-        
-        self._render_description()
+        self.schRender = True
+        self.schRenderSize = size
+        if self.updateDelay <= 0:
+            self._base_render(size)
+            
+            #render attack
+            font = py.font.Font("assets/fonts/Galdeano.ttf", int(80/770 * self.size[0]))
+            render = font.render(str(self.card.attack + self.changes["attack"]), 1, (0, 0, 0))
+            self.image.blit(render, (165/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+            
+            #render speed
+            render = font.render(str(self.card.speed + self.changes["speed"]), 1, (0, 0, 0))
+            self.image.blit(render, (385/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+            
+            #render health
+            render = font.render(str(self.card.health + self.changes["health"]), 1, (0, 0, 0))
+            self.image.blit(render, (610/770 * self.size[0] - render.get_rect().size[0]/2, 590/1105 * self.size[1] - render.get_rect().size[1]/2))
+            
+            self._render_description()
+            self.schRender = False
+    
+    def next_turn(self):
+        self.moves = self.card.speed + self.changes["speed"]
     
     def move(self, path=None):
         if path != None:
@@ -512,11 +520,14 @@ class minionCard(gameCard):
         
     def update(self):
         self._pre_update()
+        if self.updateDelay != 0:
+            self.updateDelay -= 1
         if self.card.health + self.changes["health"] <= 0:
             if not self.movePath and self.attackTarget == None:
-                self.deathDelay += 1
-                if self.deathDelay >= 20:
+                if self.updateDelay <= 0:
                     self.kill()
+        if self.schRender:
+            self._render(self.schRenderSize)
         
         for event in v.events:
             if v.gameTurn != None and v.gameTurn["player"] == v.unid and self.alive():
@@ -567,6 +578,8 @@ class minionCard(gameCard):
                                         v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
                                         self.changes["health"] -= target.card.attack + target.changes["attack"]
                                         target.changes["health"] -= self.card.attack + self.changes["attack"]
+                                        target.updateDelay += 20
+                                        self.updateDelay += 20
                                         self.attackTarget = target
                                         if target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
                                             v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
@@ -719,7 +732,13 @@ class Effect(py.sprite.Sprite):
         super().__init__()
         self.type = type
         self.target = target
+        if isinstance(self.target, minionCard):
+            self.target = self.target.tile
         if self.type == "meteor":
+            if self.target != None:
+                for card in v.gameCards:
+                    if card.tile == self.target:
+                        card.updateDelay += 39
             self.sheet = SpriteSheet(sheet, 8, 1)
             self.rimage = self.sheet.images[0]
             self.rect = self.sheet.images[0].get_rect()

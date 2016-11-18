@@ -199,7 +199,7 @@ class PlayerTurn(py.sprite.Sprite):
     def __init__(self):
         self.image = py.image.load("assets/images/turn.png").convert_alpha()
         self.image = py.transform.scale(self.image, (400, 150))
-        self.rect= self.image.get_rect()
+        self.rect = self.image.get_rect()
         self.rect.center = (640, 200)
         self.cycle = 0
         self.update()

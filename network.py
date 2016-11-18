@@ -197,6 +197,8 @@ def changes():
                     target = card
             if "damage" in event["effects"].keys():
                 target.changes["health"] -= event["effects"]["damage"]
+            
+            gameItems.Effect(event["animation"], target=target, sheet="assets/images/effects/fireball.png")
             target._render((100, 140))
                 
         if event["type"] == "turn":
@@ -220,5 +222,3 @@ def changes():
             v.gameStop = event["reason"]
             v.networkHalt = True
     v.networkChanges = []
-
-
