@@ -85,6 +85,7 @@ class tile(py.sprite.Sprite):
         
         self.pos = pos
         self.attack = False
+        self.card = None
     
     def draw(self):
         change(v.screen.blit(self.rimage, self.rect))
@@ -96,6 +97,11 @@ class tile(py.sprite.Sprite):
             self.hovered = False
         
         self.attack = False
+        
+        self.card = None
+        for card in v.gameCards:
+            if card.tile == self:
+                self.card = card
         
         if v.dragCard != None:
             if v.dragCard.type == "minion":
@@ -134,10 +140,9 @@ class tile(py.sprite.Sprite):
                                 self.attack = True
                         
             if v.dragCard.type == "spell":
-                for card in v.gameCards:
-                    if card.tile == self:
-                        v.availableTiles.add(self)
-                        self.attack = True
+                if self.card != None:
+                    v.availableTiles.add(self)
+                    self.attack = True
                     
                     
                 
@@ -378,9 +383,7 @@ class spellCard(gameCard):
                 self.preCard = []
                 self.postCard = []
                 if v.hoverTile != None:
-                    for card in v.gameCards:
-                        if card.tile == v.hoverTile:
-                            target = card
+                    target = v.hoverTile.card
                     if "damage" in self.card.effects.keys():
                         target.changes["health"] -= self.card.effects["damage"]
                         v.networkEvents.append({"type": "spell", "effects": self.card.effects, "target": target.unid, "animation": "meteor"})
@@ -389,19 +392,18 @@ class spellCard(gameCard):
                     if not v.debug:
                         self.kill()
         self._hand_update()
+        self.preCard = []
         if self.drag and v.hoverTile != None:
-            for card in v.gameCards:
-                if card.tile == v.hoverTile:
-                    self.rect.x = v.hoverTile.rect.x - self.rect.width - 10
-                    if "damage" in self.card.effects.keys():
-                        drect = py.Rect(0, 0, 100, 100)
-                        drect.center = v.hoverTile.rect.center
-                        self.preCard.append((self.damage, drect))
-                        font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
-                        dmg = font.render(str(-self.card.effects["damage"]), 1, (0, 0, 0))
-                        drect = dmg.get_rect()
-                        drect.center = v.hoverTile.rect.center
-                        self.preCard.append((dmg, drect))
+            self.rect.x = v.hoverTile.rect.x - self.rect.width - 10
+            if "damage" in self.card.effects.keys():
+                drect = py.Rect(0, 0, 100, 100)
+                drect.center = v.hoverTile.rect.center
+                self.preCard.append((self.damage, drect))
+                font = py.font.Font("assets/fonts/Galdeano.ttf", 30)
+                dmg = font.render(str(-self.card.effects["damage"]), 1, (0, 0, 0))
+                drect = dmg.get_rect()
+                drect.center = v.hoverTile.rect.center
+                self.preCard.append((dmg, drect))
         self.draw()
 
 class minionCard(gameCard):
@@ -574,9 +576,7 @@ class minionCard(gameCard):
                                             self.tile = tile
                                     v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
                                     if v.hoverTile.castle == None:
-                                        for card in v.gameCards:
-                                            if card.tile == v.hoverTile:
-                                                target = card
+                                        target = v.hoverTile.card
                                         v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
                                         self.changes["health"] -= target.card.attack + target.changes["attack"]
                                         target.changes["health"] -= self.card.attack + self.changes["attack"]
@@ -654,9 +654,7 @@ class minionCard(gameCard):
                     drect.center = v.hoverTile.rect.center
                     self.preCard.append((dmg, drect))
                     if v.hoverTile.castle == None:
-                        for card in v.gameCards:
-                            if card.tile == v.hoverTile:
-                                target = card
+                        target = v.hoverTile.card
                         drect = py.Rect(0, 0, 100, 100)
                         drect.center = self.tile.rect.center
                         self.postCard.append((self.damage, drect))
