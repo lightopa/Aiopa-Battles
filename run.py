@@ -13,6 +13,14 @@ except:
 
 import states
 
+import hanging_threads
+import atexit
+
+@atexit.register
+def what_happened():
+    print("EXIT")
+
+
 #states.boot()
 
 if __name__ == "__main__":

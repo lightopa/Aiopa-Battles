@@ -46,9 +46,9 @@ def queue(loadObj):
         if data["key"] == key:
             v.unid = data["unid"]
             loadObj.text = "Finding Game"
-            t1 = threading.Thread(target=checkQueue)
+            t1 = threading.Thread(name="checkQueue", target=checkQueue)
             t1.start()
-    t0 = threading.Thread(target=_queue)
+    t0 = threading.Thread(name="queue", target=_queue)
     t0.start()
 
 
@@ -57,13 +57,20 @@ def checkQueue():
     while True:
         payload = {"unid": v.unid}
         jpayload = json.dumps(str(payload))
-        r = requests.post(v.server + "check_queue/", data=jpayload)
-        data = ast.literal_eval(r.text)
-        if data[0] == True:
-            v.game = data[1]
-            return
-        if v.networkHalt == True:
-            return
+        try:
+            r = requests.post(v.server + "check_queue/", data=jpayload, timeout=1)
+        except requests.Timeout:
+            print("timeout")
+            continue
+        try:
+            data = ast.literal_eval(r.text)
+            if data[0] == True:
+                v.game = data[1]
+                return
+            if v.networkHalt == True:
+                return
+        except:
+            pass
 
 def gameLoop():
     """Continuously checks the server for updates, and send any local updates to the server"""
@@ -103,7 +110,8 @@ def gameLoop():
             v.gameStop = "bad"
             return
     
-    t3 = threading.Thread(target=_gameLoop)
+    t3 = threading.Thread(name="gameLoop", target=_gameLoop)
+    t3.daemon = True
     t3.start()
 
 def gameJoin():
@@ -117,7 +125,7 @@ def gameJoin():
         v.gameTurn = data["turn"]
         v.opUnid = data["opponent"]
         v.opName = data["opName"]
-    t2 = threading.Thread(target=_gameJoin)
+    t2 = threading.Thread(name="gameJoin", target=_gameJoin)
     t2.start()
     
 def gameLeave():
