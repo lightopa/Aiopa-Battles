@@ -128,9 +128,9 @@ def gameJoin():
     t2 = threading.Thread(name="gameJoin", target=_gameJoin)
     t2.start()
     
-def gameLeave():
+def gameLeave(reason="disconnect"):
     """Will tell the server that the client has disconnected"""
-    payload = {"unid": v.unid, "game": v.game}
+    payload = {"unid": v.unid, "game": v.game, "reason": reason}
     jpayload = json.dumps(str(payload))
     r = requests.post(v.server + "game_leave/", data=jpayload)
 

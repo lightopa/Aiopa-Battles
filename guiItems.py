@@ -146,7 +146,7 @@ class healthBar(py.sprite.Sprite):
         change(v.screen.blit(self.rimage, self.rect))
         change(v.screen.blit(self.rtext, (self.rect.centerx - self.rtext.get_rect().width/2, self.rect.centery - self.rtext.get_rect().height/2)))
     
-    def update(self):
+    def update(self): #TODO: Reduce fills
         self.rimage = self.image.copy()
         self.rimage.fill((200, 150, 150), special_flags=py.BLEND_MULT)
         if self.friendly:
@@ -157,8 +157,6 @@ class healthBar(py.sprite.Sprite):
             r = py.Rect(0, 0, 200 * v.opHealth/20, 50)
             self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
             self.rtext = self.font.render(str(v.opHealth), 1, (0, 0, 0))
-        
-        
         self.draw()
 
 class timer(py.sprite.Sprite):

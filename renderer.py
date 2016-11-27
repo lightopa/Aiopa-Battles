@@ -27,7 +27,8 @@ def refresh():
                     v.windowHeight = 360
                     v.windowWidth = 640
                 change(py.Rect(0, 0, 1280, 720))
-    
+            if event.key == py.K_f:
+                change(py.Rect(0, 0, 1280, 720))
     if (v.windowWidth, v.windowHeight) == (1280, 720):
         v.display.blit(v.screen, (0, 0))
     else:

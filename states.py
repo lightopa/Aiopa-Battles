@@ -35,6 +35,9 @@ def mainMenu():
             if event.type == py.QUIT:
                 v.networkHalt = True
                 sys.exit()
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_k:
+                    raise Exception("Purposefully Crashed")
         
         buttons.update()
         
@@ -304,4 +307,49 @@ def finish():
                 if button.pressed():
                     mainMenu()
                     return
+        refresh()
+
+def crash(crash):
+    py.init()
+    texts = py.sprite.Group()
+    buttons = py.sprite.Group()
+    buttons.add(menuItems.Button("Copy to Clipboard", (40, 650), 40, (50, 255, 50), (0, 200, 0), None, "copy"))
+    buttons.add(menuItems.Button("Upload Report", (440, 650), 40, (50, 255, 50), (0, 200, 0), None, "upload"))
+    buttons.add(menuItems.Button("Exit", (840, 650), 40, (50, 255, 50), (0, 200, 0), None, "quit"))
+    
+    posy = 70
+    import os.path
+    parent = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    parent = parent.replace("\\", "/")
+    for line in crash.split("\n"):
+        out = line.strip("\n")
+        out = out.replace("\\", "/")
+        out = out.split(parent)
+        out = "".join(out)
+        out = out.replace("  ", "    ")
+        texts.add(menuItems.Text(out, (60, posy), (0, 0, 0), None, 30))
+        posy += 32
+            
+    change(py.Rect(0, 0, 1280, 720))
+    while True:
+        py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        v.screen.fill((50, 0, 255))
+        py.draw.rect(v.screen, (255, 255, 255), (40, 40, 1200, 600))
+        py.draw.rect(v.screen, (0, 0, 0), (40, 40, 1200, 600), 2)
+        texts.update()
+        buttons.update()
+        for button in buttons:
+            if button.pressed():
+                if button.ID == "upload":
+                    pass
+                if button.ID == "copy":
+                    py.scrap.init()
+                    py.scrap.put(py.SCRAP_TEXT, str(crash).encode())
+                if button.ID == "quit":
+                    return
+        for event in v.events:
+            if event.type == py.QUIT:
+                return
         refresh()

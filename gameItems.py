@@ -152,12 +152,11 @@ class tile(py.sprite.Sprite):
  
         self.rimage = self.image.copy()
         
-        for c in v.gameCards:
-            if c.tile == self:
-                if c.player == v.unid:
-                    self.rimage.fill((100, 255, 100, 200), special_flags=py.BLEND_RGBA_MULT)
-                else:
-                    self.rimage.fill((255, 100, 100, 200), special_flags=py.BLEND_RGBA_MULT)
+        if self.card != None:
+            if self.card.player == v.unid:
+                self.rimage.fill((100, 255, 100, 200), special_flags=py.BLEND_RGBA_MULT)
+            else:
+                self.rimage.fill((255, 100, 100, 200), special_flags=py.BLEND_RGBA_MULT)
         
         if self.castle != None:
             if self.attack:
@@ -391,6 +390,10 @@ class spellCard(gameCard):
                         Effect("meteor", target=v.hoverTile, sheet="assets/images/effects/fireball.png")
                     if not v.debug:
                         self.kill()
+                        for card in v.gameCards:
+                            if card.tile == None:
+                                if card.order > self.order:
+                                    card.order -= 1
         self._hand_update()
         self.preCard = []
         if self.drag and v.hoverTile != None:

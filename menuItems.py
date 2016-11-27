@@ -27,7 +27,7 @@ class Button(py.sprite.Sprite):
         self.ncolour = normalcolour
         self.font = font
         if font == None:
-            font = "Resources/Fonts/FSB.ttf"
+            font = "assets/fonts/FSB.ttf"
         self.font = py.font.Font(font, int(size))
         self.centred = centred
         self.size = bsize
