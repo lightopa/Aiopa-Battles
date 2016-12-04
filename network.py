@@ -226,6 +226,9 @@ def changes():
                     else:
                         card.order -= 1
                 v.pturn.cycle = 1
+                if v.totalMana < 10:
+                    v.totalMana += 1
+                v.pMana = v.totalMana
         if event["type"] == "stop":
             v.gameStop = event["reason"]
             v.networkHalt = True

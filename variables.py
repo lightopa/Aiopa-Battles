@@ -19,7 +19,9 @@ timeLeft = turnLength # The amount of time left in the current turn
 debug = False # Debug mode
 
 name = "" # The player's name
-pHealth = 20 # The player's  health
+pHealth = 20 # The player's health
+totalMana = 1 # The total mana available this turn
+pMana = totalMana # The player's mana
 
 cards = {} # All card container objects
 deck = [] # The player's deck - list of gameItems.card

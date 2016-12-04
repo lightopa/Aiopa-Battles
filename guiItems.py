@@ -216,4 +216,22 @@ class PlayerTurn(py.sprite.Sprite):
         else:
             self.rimage = py.Surface((0, 0))
         self.draw()
+
+class ManaMeter(py.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = py.image.load("assets/images/mana.png").convert_alpha()
+        self.image = py.transform.scale(self.image, (20, 20))
+        self.bimage = self.image.copy()
+        self.bimage.fill((100, 100, 100), special_flags=py.BLEND_MULT)
     
+    def draw(self):
+        for i in range(v.totalMana):
+            r = (30 + i * 30, 500)
+            if i > v.pMana - 1:
+                change(v.screen.blit(self.bimage, r))
+            else:
+                change(v.screen.blit(self.image, r))
+    
+    def update(self):
+        self.draw()

@@ -375,12 +375,13 @@ class spellCard(gameCard):
                     v.dragCard = self
                     v.availableTiles = py.sprite.Group()
 
-            if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag:
+            if event.type == py.MOUSEBUTTONUP and event.button == 1 and self.drag and v.pMana >= self.card.cost:
                 self.drag = False
                 v.dragCard = None
                 v.availableTiles = None
                 self.preCard = []
                 self.postCard = []
+                v.pMana -= self.card.cost
                 if v.hoverTile != None:
                     target = v.hoverTile.card
                     if "damage" in self.card.effects.keys():
@@ -551,16 +552,18 @@ class minionCard(gameCard):
                     self.preCard = []
                     self.postCard = []
                     if self.tile == None:
-                        for tile in v.tiles:
-                            if tile.hovered:
-                                self.tile = tile
-                        if self.tile != None:
-                            v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos, "unid": self.unid})
-                            self._render((100, 140))
-                            for card in v.gameCards:
-                                if card.tile == None:
-                                    if card.order > self.order:
-                                        card.order -= 1
+                        if v.pMana >= self.card.cost:
+                            v.pMana -= self.card.cost
+                            for tile in v.tiles:
+                                if tile.hovered:
+                                    self.tile = tile
+                            if self.tile != None:
+                                v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos, "unid": self.unid})
+                                self._render((100, 140))
+                                for card in v.gameCards:
+                                    if card.tile == None:
+                                        if card.order > self.order:
+                                            card.order -= 1
                     else:
                         if v.hoverTile == None:
                             pass

@@ -162,6 +162,7 @@ def game():
     gui.add(guiItems.healthBar(True))
     gui.add(guiItems.healthBar(False))
     gui.add(guiItems.timer())
+    gui.add(guiItems.ManaMeter())
     v.pturn = guiItems.PlayerTurn()
     
     v.effects = py.sprite.Group()
