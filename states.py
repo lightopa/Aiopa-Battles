@@ -130,8 +130,11 @@ def game():
     for y in range(0, 3):
         for x in range(0, 4):
             v.tiles.add(gameItems.tile((x, y), "board"))
-    v.tiles.add(gameItems.tile((-1, 0), "board", True))
-    v.tiles.add(gameItems.tile((4, 0), "board", False))
+    
+    pcstl = gameItems.tile((-1, 0), "board", True)
+    v.tiles.add(pcstl)
+    opcstl = gameItems.tile((4, 0), "board", False)
+    v.tiles.add(opcstl)
 
     v.gameCards = py.sprite.Group() 
     v.deck = list(v.cards.values())
@@ -170,6 +173,8 @@ def game():
     network.gameLoop()
     
     change(py.Rect(0, 0, 1280, 720))
+    
+    winEffect = None
         
     while True:
         py.event.pump()
@@ -198,6 +203,7 @@ def game():
         
         network.changes()
         
+        
         if not v.pause:
             v.tiles.update()
             v.gameCards.update()
@@ -212,6 +218,23 @@ def game():
             pName.update()
             v.effects.update()
             gui.update()
+            
+            if v.pHealth <= 0:
+                v.winner = v.opUnid
+            if v.opHealth <= 0:
+                v.winner = v.unid
+                
+            if v.winner != None:
+                if winEffect == None:
+                    if v.winner == v.opUnid:
+                        t = pcstl
+                    else:
+                        t = opcstl
+                    winEffect = gameItems.Effect("explosion", target=t, sheet="assets/images/effects/explosion1.png")
+                elif winEffect.alive() == False:
+                    v.pause = True
+                    v.pauseType = "win"
+                    winScreen = guiItems.endScreen()
             
             if v.dragCard != None:
                 fade.fadeIn()
@@ -271,6 +294,9 @@ def game():
             v.pturn.draw()
             if v.pauseType == "coin":
                 coinScreen.update()
+                
+            if v.pauseType == "win":
+                winScreen.update()
         
         debug.update()
         refresh()

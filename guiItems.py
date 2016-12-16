@@ -82,6 +82,8 @@ class coinScreen(py.sprite.Sprite):
         if v.gameStarter == v.unid:
             self.text = font.render("You go first", 1, (255, 255, 255))
             self.miniText = None
+            v.totalMana += 1
+            v.pMana = v.totalMana
         else:
             self.text = font.render("You go second", 1, (255, 255, 255))
             
@@ -235,3 +237,29 @@ class ManaMeter(py.sprite.Sprite):
     
     def update(self):
         self.draw()
+        
+class endScreen(py.sprite.Sprite):
+    def __init__(self):
+        """A screen displayed at the end of a game to show if the player won or lost"""
+        super().__init__()
+        self.black = blackFade(230, 8, True)
+        self.state = "in"
+        
+        font = py.font.Font("assets/fonts/Galdeano.ttf", 100)
+        if v.winner == v.unid:
+            text = "Victory!"
+        else:
+            text = "Defeat!"
+        self.text = font.render(text, 1, (255, 255, 255))
+        self.button = menuItems.Button("Main Menu", (640, 420), 80, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "begin", centred=True)
+    
+    def update(self):
+        if self.state == "in":
+            self.black.fadeIn()
+            
+        if self.state == "in":
+            change(v.screen.blit(self.text, (640 - self.text.get_rect().width/2, 250 - self.text.get_rect().height/2)))
+                
+            self.button.update()
+            if self.button.pressed():
+                pass

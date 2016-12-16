@@ -37,7 +37,11 @@ def queue(loadObj):
         key = random.random()
         payload = {"key": key, "name": v.name}
         jpayload = json.dumps(str(payload))
-        r = requests.post(v.server + "connect/", data=jpayload)
+        try:
+            r = requests.post(v.server + "connect/", data=jpayload, timeout=1)
+        except requests.Timeout:
+            _queue()
+            return
         if r.status_code != 200:
             v.gameStop = "bad"
             print(r.text)
