@@ -1,6 +1,7 @@
 import pygame as py
 import variables as v
 from renderer import *
+import string
 
 class Button(py.sprite.Sprite):
 
@@ -112,10 +113,10 @@ class Text(py.sprite.Sprite):
             self.rpos = tuple(self.rpos)
         self.draw()
         
-class textInput(py.sprite.Sprite):
+"""class textInput(py.sprite.Sprite):
     
     def __init__(self, pos, fontSize, characters, fontfile, default=[], background=(255, 255, 255), centred=False):
-        """A text input field.
+        ""A text input field.
         
         Args:
             pos x,y (int, int): The position of the box
@@ -125,11 +126,11 @@ class textInput(py.sprite.Sprite):
             default (list): The default contents - default=[]
             background r,g,b (int, int, int): Colour of the input box's background - default=white
             centred (bool): Whether to centre the text box - default=False
-        """
+        ""
         super().__init__()
         self.font = py.font.Font(fontfile, fontSize)
         self.thickness = int(2 * fontSize / 20)
-        biggest = "W "
+        biggest = "w"
         self.rect = py.Rect(pos, self.font.size(biggest * characters))
         if centred:
             self.rect.center = pos
@@ -190,4 +191,87 @@ class textInput(py.sprite.Sprite):
                 if event.key == py.K_BACKSPACE:
                     if len(self.string) > 0:
                         self.string.pop(-1)
-        self.draw()
+        self.draw()"""
+        
+class TextBox(py.sprite.Sprite):
+    #https://github.com/Mekire/pygame-textbox
+    def __init__(self, rect, **kwargs):
+        super.__init__()
+        self.rect = py.Rect(rect)
+        self.buffer = []
+        self.final = None
+        self.rendered = None
+        self.render_rect = None
+        self.render_area = None
+        self.blink = True
+        self.blink_timer = 0.0
+        self.ACCEPTED = string.ascii_letters+string.digits+string.punctuation+" "
+        self.process_kwargs(kwargs)
+
+    def process_kwargs(self,kwargs):
+        defaults = {"id" : None,
+                    "command" : None,
+                    "active" : True,
+                    "color" : py.Color("white"),
+                    "font_color" : py.Color("black"),
+                    "outline_color" : py.Color("black"),
+                    "outline_width" : 2,
+                    "active_color" : py.Color("blue"),
+                    "font" : py.font.Font(None, self.rect.height+4),
+                    "clear_on_enter" : False,
+                    "inactive_on_enter" : True}
+        for kwarg in kwargs:
+            if kwarg in defaults:
+                defaults[kwarg] = kwargs[kwarg]
+            else:
+                raise KeyError("InputBox accepts no keyword {}.".format(kwarg))
+        self.__dict__.update(defaults)
+
+    def get_event(self):
+        for event in v.events:
+            if event.type == py.KEYDOWN and self.active:
+                if event.key in (py.K_RETURN,py.K_KP_ENTER):
+                    self.execute()
+                elif event.key == py.K_BACKSPACE:
+                    if self.buffer:
+                        self.buffer.pop()
+                elif event.unicode in self.ACCEPTED:
+                    self.buffer.append(event.unicode)
+            elif event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                self.active = self.rect.collidepoint(event.pos)
+
+    def execute(self):
+        if self.command:
+            self.command(self.id,self.final)
+        self.active = not self.inactive_on_enter
+        if self.clear_on_enter:
+            self.buffer = []
+
+    def update(self):
+        new = "".join(self.buffer)
+        if new != self.final:
+            self.final = new
+            self.rendered = self.font.render(self.final, True, self.font_color)
+            self.render_rect = self.rendered.get_rect(x=self.rect.x+2,
+                                                      centery=self.rect.centery)
+            if self.render_rect.width > self.rect.width-6:
+                offset = self.render_rect.width-(self.rect.width-6)
+                self.render_area = py.Rect(offset,0,self.rect.width-6,
+                                           self.render_rect.height)
+            else:
+                self.render_area = self.rendered.get_rect(topleft=(0,0))
+        if py.time.get_ticks()-self.blink_timer > 200:
+            self.blink = not self.blink
+            self.blink_timer = py.time.get_ticks()
+
+    def draw(self):
+        outline_color = self.active_color if self.active else self.outline_color
+        outline = self.rect.inflate(self.outline_width*2,self.outline_width*2)
+        v.screen.fill(outline_color,outline)
+        v.screen.fill(self.color,self.rect)
+        if self.rendered:
+            v.screen.blit(self.rendered,self.render_rect,self.render_area)
+        if self.blink and self.active:
+            curse = self.render_area.copy()
+            curse.topleft = self.render_rect.topleft
+            v.screen.fill(self.font_color,(curse.right+1,curse.y,2,curse.h))
