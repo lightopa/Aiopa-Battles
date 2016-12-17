@@ -243,7 +243,6 @@ class endScreen(py.sprite.Sprite):
         """A screen displayed at the end of a game to show if the player won or lost"""
         super().__init__()
         self.black = blackFade(230, 8, True)
-        self.state = "in"
         
         font = py.font.Font("assets/fonts/Galdeano.ttf", 100)
         if v.winner == v.unid:
@@ -254,12 +253,10 @@ class endScreen(py.sprite.Sprite):
         self.button = menuItems.Button("Main Menu", (640, 420), 80, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "begin", centred=True)
     
     def update(self):
-        if self.state == "in":
-            self.black.fadeIn()
+        self.black.fadeIn()
+
+        change(v.screen.blit(self.text, (640 - self.text.get_rect().width/2, 250 - self.text.get_rect().height/2)))
             
-        if self.state == "in":
-            change(v.screen.blit(self.text, (640 - self.text.get_rect().width/2, 250 - self.text.get_rect().height/2)))
-                
-            self.button.update()
-            if self.button.pressed():
-                pass
+        self.button.update()
+        if self.button.pressed():
+            pass
