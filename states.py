@@ -6,6 +6,7 @@ import gameItems
 import guiItems
 import sys
 from renderer import *
+import tween
 
 def boot():
     """Sets up the game and starts the mainMenu state"""
@@ -16,8 +17,10 @@ def boot():
     icon = py.image.load("assets/images/icons/icon.ico")
     py.display.set_icon(icon)
     v.clock = py.time.Clock()
+    py.key.set_repeat(200, 70)
     #mainMenu()
-    logo()
+    #logo()
+    login()
 
 def mainMenu():
     """The main menu state"""
@@ -53,7 +56,7 @@ def mainMenu():
 
 def setup():
     """The state for setting your name and choosing a deck"""
-    name = menuItems.textInput((640, 360), 60, 10, "assets/fonts/Galdeano.ttf", default=["b", "o", "b"], background=(255, 255, 255), centred=True)
+    name = menuItems.TextBox((640, 360, 200, 50), fontf="assets/fonts/Galdeano.ttf", centre=True, max=10)
     texts = py.sprite.Group()
     texts.add(menuItems.Text("Enter a name", (640, 280), (0, 0, 0), "assets/fonts/Galdeano.ttf", 80, centred=True))
     next = menuItems.Button("Join Queue", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "next", centred=True)
@@ -338,7 +341,6 @@ def finish():
         refresh()
 
 def crash(crash):
-    py.init()
     texts = py.sprite.Group()
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Copy to Clipboard", (40, 650), 40, (50, 255, 50), (0, 200, 0), None, "copy"))
@@ -381,6 +383,40 @@ def crash(crash):
             if event.type == py.QUIT:
                 return
         refresh()
+
+def login():
+    buttons = py.sprite.Group()
+    buttons.add(menuItems.Button("Login", (640, 550), 50, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "login", centred=True, bsize=(200, 50)))
+    buttons.add(menuItems.Button("Register", (640, 600), 25, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "register", centred=True, bsize=(200, 30)))
+    
+    uname = menuItems.TextBox((640, 400, 200, 50), fontf="assets/fonts/FSB.ttf", size=30)
+    pword = menuItems.TextBox((640, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*")
+    
+    texts = py.sprite.Group()
+    texts.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
+    texts.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
+    
+    texts.add(menuItems.Text("username", (540, 350), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
+    texts.add(menuItems.Text("password", (540, 430), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
+    
+    backFire = menuItems.Animation((0, -400, 1280, 1280), "assets/images/fire.png", 50, 1, 60)
+    black = guiItems.blackFade()
+    black.alpha = 255
+    while True:
+        py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        v.clock.tick(60)
+        change(py.Rect(0, 0, 1280, 720))
+        v.screen.fill((0, 0, 0))
+        backFire.update()
+        buttons.update()
+        tween.update()
+        uname.update()
+        pword.update()
+        texts.update()
+        black.fadeOut()
+        refresh()
         
 def logo():
     font = py.font.Font("assets/fonts/slant.ttf", 100)
@@ -411,22 +447,22 @@ def logo():
         v.screen.fill((0, 0, 0))
         change(py.Rect(0, 0, 1280, 720))
 
-        if cycle < 25:
-            l1pos[0] += 14
-        if cycle > 20 and cycle < 45:
-            l2pos[0] -= 22
+        if cycle < 20:
+            l1pos[0] += 32 - (32 * cycle / 20)
+        if cycle > 10 and cycle < 30:
+            l2pos[0] -= 58 - (58 * (cycle - 10) / 20)
         
-        if cycle > 25 and cycle < 225:
+        if cycle > 19 and cycle < 225:
             l1pos[0] += 0.1
-        if cycle > 45 and cycle < 250:
+        if cycle > 29 and cycle < 250:
             l2pos[0] -= 0.1
         
         if cycle > 225:
-            l1pos[0] += 40
+            l1pos[0] += (40 * (cycle - 225) / 20)
         if cycle > 240:
-            l2pos[0] -= 40
+            l2pos[0] -= (40 * (cycle - 225) / 20)
         
-        if cycle == 45:
+        if cycle == 30:
             thunder.play()
         
         if cycle >= 200 and cycle < 250:
@@ -446,22 +482,22 @@ def logo():
             flash.set_alpha(flashAlpha)
             v.screen.blit(flash, (0, 0))
         if cycle > 340:
-            mainMenu()
+            login()
             return
         
         v.screen.blit(l1, l1pos)
         v.screen.blit(l2, l2pos)
         
-        if cycle > 50 and cycle < 60:
+        if cycle > 30 and cycle < 40:
             flashAlpha += 25.5
             flash.set_alpha(flashAlpha)
             v.screen.blit(flash, (0, 0))
-        if cycle > 55 and cycle < 200:
+        if cycle > 35 and cycle < 200:
             flashAlpha -= 1.7
             flash.set_alpha(flashAlpha)
             v.screen.blit(flash, (0, 0))
         
-        if cycle > 60 and cycle < 200:
+        if cycle > 40 and cycle < 200:
             v.screen.blit(logo, (485, 205))
             
         cycle += 1

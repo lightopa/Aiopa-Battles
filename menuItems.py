@@ -2,6 +2,7 @@ import pygame as py
 import variables as v
 from renderer import *
 import string
+import gameItems
 
 class Button(py.sprite.Sprite):
 
@@ -196,7 +197,27 @@ class Text(py.sprite.Sprite):
 class TextBox(py.sprite.Sprite):
     #https://github.com/Mekire/pygame-textbox
     def __init__(self, rect, **kwargs):
-        super.__init__()
+        """A text input box.
+        Args:
+            rect (pygame.Rect): The box's rect
+        KWargs (optional):
+            id: A unique identifier for the sprite
+            active (bool): Is the box pre-selected?
+            colour (r, g, b): The box's background colour
+            font_colour (r, g, b): The font colour
+            outline_colour (r, g, b): The colour of the box's outline
+            outline_width (int): The width of the box's outline
+            active_colour (r, g, b): The outline colour when box is selected
+            fontf (str): The path to the font file
+            size (int): The size of the font
+            centre (bool): Center the box on the point given in rect?
+            default (string): The default contents of the box
+            max (int): The maximum length of the input
+            replace (str): What to replace each character with while drawing (eg. password)
+        
+        The final contents of the input box is stored in self.final
+        """
+        super().__init__()
         self.rect = py.Rect(rect)
         self.buffer = []
         self.final = None
@@ -209,50 +230,53 @@ class TextBox(py.sprite.Sprite):
         self.process_kwargs(kwargs)
 
     def process_kwargs(self,kwargs):
-        defaults = {"id" : None,
-                    "command" : None,
-                    "active" : True,
-                    "color" : py.Color("white"),
-                    "font_color" : py.Color("black"),
-                    "outline_color" : py.Color("black"),
-                    "outline_width" : 2,
-                    "active_color" : py.Color("blue"),
-                    "font" : py.font.Font(None, self.rect.height+4),
-                    "clear_on_enter" : False,
-                    "inactive_on_enter" : True}
+        defaults = {"id": None,
+                    "active": True,
+                    "colour": py.Color("white"),
+                    "font_colour": py.Color("black"),
+                    "outline_colour": py.Color("black"),
+                    "outline_width": 2,
+                    "active_colour": py.Color("blue"),
+                    "fontf": None,
+                    "size": self.rect.height + 4,
+                    "centre": True,
+                    "default": "",
+                    "max": float("inf"),
+                    "replace": None}
         for kwarg in kwargs:
             if kwarg in defaults:
                 defaults[kwarg] = kwargs[kwarg]
             else:
                 raise KeyError("InputBox accepts no keyword {}.".format(kwarg))
         self.__dict__.update(defaults)
+        self.font = py.font.Font(self.fontf, self.size)
+        if self.centre:
+            self.rect.center = self.rect.topleft
+        self.buffer = list(self.default)
 
     def get_event(self):
         for event in v.events:
             if event.type == py.KEYDOWN and self.active:
-                if event.key in (py.K_RETURN,py.K_KP_ENTER):
-                    self.execute()
-                elif event.key == py.K_BACKSPACE:
+                if event.key == py.K_BACKSPACE:
                     if self.buffer:
                         self.buffer.pop()
                 elif event.unicode in self.ACCEPTED:
-                    self.buffer.append(event.unicode)
+                    if len(self.buffer) < self.max:
+                        self.buffer.append(event.unicode)
             elif event.type == py.MOUSEBUTTONDOWN and event.button == 1:
-                self.active = self.rect.collidepoint(event.pos)
-
-    def execute(self):
-        if self.command:
-            self.command(self.id,self.final)
-        self.active = not self.inactive_on_enter
-        if self.clear_on_enter:
-            self.buffer = []
+                self.active = self.rect.collidepoint(v.mouse_pos)
 
     def update(self):
+        self.get_event()
         new = "".join(self.buffer)
         if new != self.final:
             self.final = new
-            self.rendered = self.font.render(self.final, True, self.font_color)
-            self.render_rect = self.rendered.get_rect(x=self.rect.x+2,
+            if self.replace == None:
+                ren = self.final
+            else:
+                ren = self.replace * len(self.final)
+            self.rendered = self.font.render(ren, True, self.font_colour)
+            self.render_rect = self.rendered.get_rect(x=self.rect.x + 2,
                                                       centery=self.rect.centery)
             if self.render_rect.width > self.rect.width-6:
                 offset = self.render_rect.width-(self.rect.width-6)
@@ -260,18 +284,44 @@ class TextBox(py.sprite.Sprite):
                                            self.render_rect.height)
             else:
                 self.render_area = self.rendered.get_rect(topleft=(0,0))
-        if py.time.get_ticks()-self.blink_timer > 200:
+        if py.time.get_ticks() - self.blink_timer > 400:
             self.blink = not self.blink
             self.blink_timer = py.time.get_ticks()
+        
+        self.draw()
 
     def draw(self):
-        outline_color = self.active_color if self.active else self.outline_color
-        outline = self.rect.inflate(self.outline_width*2,self.outline_width*2)
-        v.screen.fill(outline_color,outline)
-        v.screen.fill(self.color,self.rect)
+        change(self.rect)
+        outline_colour = self.active_colour if self.active else self.outline_colour
+        outline = self.rect.inflate(self.outline_width * 2, self.outline_width * 2)
+        v.screen.fill(outline_colour, outline)
+        v.screen.fill(self.colour, self.rect)
         if self.rendered:
-            v.screen.blit(self.rendered,self.render_rect,self.render_area)
+            v.screen.blit(self.rendered, self.render_rect, self.render_area)
         if self.blink and self.active:
             curse = self.render_area.copy()
             curse.topleft = self.render_rect.topleft
-            v.screen.fill(self.font_color,(curse.right+1,curse.y,2,curse.h))
+            v.screen.fill(self.font_colour, (curse.right + 1, curse.y, 2, curse.h))
+            
+class Animation(py.sprite.Sprite):
+    
+    def __init__(self, rect, image, rows, columns, delay):
+        self.sheet = gameItems.SpriteSheet(image, rows, columns).images
+        self.delay = delay
+        self.count = 0
+        self.rect = py.Rect(rect)
+        for i in range(len(self.sheet)):
+            self.sheet[i] = py.transform.scale(self.sheet[i], self.rect.size)
+    
+    def draw(self):
+        change(self.rect)
+        v.screen.blit(self.sheet[self.count], self.rect)
+    
+    def update(self):
+        """if py.time.get_ticks() % self.delay == 0:
+            self.count += 1
+            if self.count == len(self.sheet):
+                self.count = 0"""
+        self.count = int(py.time.get_ticks() / self.delay) % len(self.sheet)
+        self.draw()
+        
