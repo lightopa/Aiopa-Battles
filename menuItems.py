@@ -3,6 +3,7 @@ import variables as v
 from renderer import *
 import string
 import gameItems
+import random
 
 class Button(py.sprite.Sprite):
 
@@ -304,13 +305,14 @@ class TextBox(py.sprite.Sprite):
             v.screen.fill(self.font_colour, (curse.right + 1, curse.y, 2, curse.h))
             
 class Animation(py.sprite.Sprite):
-    
     def __init__(self, rect, image, rows, columns, delay):
+        super().__init__()
         self.sheet = gameItems.SpriteSheet(image, rows, columns).images
         self.delay = delay
         self.count = 0
         self.rect = py.Rect(rect)
         for i in range(len(self.sheet)):
+            #self.sheet[i] = self.sheet[i].convert()
             self.sheet[i] = py.transform.scale(self.sheet[i], self.rect.size)
     
     def draw(self):
@@ -318,10 +320,104 @@ class Animation(py.sprite.Sprite):
         v.screen.blit(self.sheet[self.count], self.rect)
     
     def update(self):
-        """if py.time.get_ticks() % self.delay == 0:
-            self.count += 1
-            if self.count == len(self.sheet):
-                self.count = 0"""
         self.count = int(py.time.get_ticks() / self.delay) % len(self.sheet)
         self.draw()
+
+class ScrollingAnimation(py.sprite.Sprite):
+    def __init__(self, image, speed):
+        super().__init__()
+        self.image = py.image.load(image)
+        self.image = py.transform.scale(self.image, self.image.get_rect().fit(py.Rect(0, 0, 1280, 720)).size)
+        self.speed = speed
+        self.cycle = 0
+    
+    def draw(self):
+        v.screen.blit(self.image, self.rect1)
+        v.screen.blit(self.image, self.rect2)
+    
+    def update(self):
+        self.rect1 = self.image.get_rect()
+        self.rect1.topleft = (0, 0 + self.cycle)
         
+        self.rect2 = self.image.get_rect()
+        self.rect2.topleft = (0, -self.rect2.height + self.cycle)
+        
+        self.cycle += self.speed
+        self.draw()
+
+class StarBackground():
+    def __init__(self, direction=0, speedmod=1, stars=400):
+        self.background = py.image.load("assets/images/menu/starback.png")
+        self.stars = py.sprite.Group()
+        for i in range(stars):
+            self.stars.add(self._Star((random.randint(0, 1280), random.randint(0, 720)), random.randint(12, 32), random.randint(-90, 90), random.uniform(0, 4) * speedmod, random.randint(1, 4), direction))
+    
+    def update(self):
+        v.screen.blit(self.background, (0, 0))
+        self.stars.update()
+    class _Star(py.sprite.Sprite):
+        def __init__(self, pos, size, rotation, speed, num, direction):
+            super().__init__()
+            self.image = py.image.load("assets/images/menu/star" + str(num) + ".png")
+            self.image = py.transform.scale(self.image, (size, size))
+            self.image = py.transform.rotate(self.image, rotation)
+            self.rect = self.image.get_rect()
+            self.rect.center = pos
+            self.speed = speed
+            self.startx = pos[0]
+            self.starty = pos[1]
+            self.change = 0
+            self.direction = direction
+        
+        def draw(self):
+            change(v.screen.blit(self.image, self.rect))
+        
+        def update(self):
+            change(self.rect)
+            self.change += self.speed * (-1 + (2 * (self.direction % 2 == 0))) # If odd * by -1
+            if not self.direction % 2:
+                self.rect.y = self.starty + self.change
+                if self.rect.y > 720 + self.rect.height and self.direction == 0:
+                    self.starty = 0 - self.rect.height
+                    self.change = 0
+                elif self.rect.y < 0 - self.rect.height:
+                    self.starty = 720 + self.rect.height
+                    self.change = 0
+            else:
+                self.rect.x = self.startx + self.change
+                if self.rect.x > 1280 + self.rect.width and self.direction == 3:
+                    self.startx = 0 - self.rect.width
+                    self.change = 0
+                elif self.rect.x < 0 - self.rect.width:
+                    self.startx = 1280 + self.rect.width
+                    self.change = 0
+            self.draw()
+            
+class LoadingCircle(py.sprite.Sprite):
+    def __init__(self, size, pos=(640, 360)):
+        self.inner = py.image.load("assets/images/loading/inner.png")
+        self.inner = py.transform.scale(self.inner, (size, size))
+        self.outer = py.image.load("assets/images/loading/outer.png")
+        self.outer = py.transform.scale(self.outer, (size, size))
+        self.rect = self.outer.get_rect()
+        self.rect.center = pos
+        self.rotation = 0
+    
+    def draw(self):
+        change(v.screen.blit(self.router, self.rect))
+        v.screen.blit(self.rinner, self.rect)
+    
+    def update(self):
+        self.rotation += 0.5
+        self.rinner = rot_center(self.inner, self.rotation)
+        self.router = rot_center(self.outer, -self.rotation)
+        self.draw()
+        
+def rot_center(image, angle):
+    """rotate an image while keeping its center and size"""
+    orig_rect = image.get_rect()
+    rot_image = py.transform.rotate(image, angle)
+    rot_rect = orig_rect.copy()
+    rot_rect.center = rot_image.get_rect().center
+    rot_image = rot_image.subsurface(rot_rect).copy()
+    return rot_image

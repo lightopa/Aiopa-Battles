@@ -7,6 +7,8 @@ import guiItems
 import sys
 from renderer import *
 import tween
+import random
+from functools import wraps
 
 def boot():
     """Sets up the game and starts the mainMenu state"""
@@ -18,22 +20,40 @@ def boot():
     py.display.set_icon(icon)
     v.clock = py.time.Clock()
     py.key.set_repeat(200, 70)
-    #mainMenu()
     #logo()
-    login()
+    v.state = mainMenu#login
+    while True:
+        v.state()
+    
 
 def mainMenu():
     """The main menu state"""
     buttons = py.sprite.Group()
-    buttons.add(menuItems.Button("Play", (640, 360), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "play", centred=True))
+    buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
+    buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
+    buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
+    buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
     change(py.Rect(0, 0, 1280, 720))
+    #background = menuItems.Animation((0, -32, 1339, 752), "assets/images/stars.png", 18, 1, 50)
+    #background = menuItems.ScrollingAnimation("assets/images/menu/stars.png", 2)
+    background = menuItems.StarBackground()
+    black = guiItems.blackFade()
+    black.alpha = 255
+    
+    title = py.sprite.Group()
+    title.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
+    title.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
+    
+    black2 = guiItems.blackFade()
+    out = None
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
-        
-        v.screen.fill((0, 255, 255))
+        change(py.Rect(0, 0, 1280, 720))
+        v.screen.fill((0, 0, 0))
+        background.update()
         
         for event in v.events:
             if event.type == py.QUIT:
@@ -48,10 +68,16 @@ def mainMenu():
         for button in buttons:
             if button.ID == "play":
                 if button.pressed():
-                    #queue()
-                    setup()
-                    #game()
-                
+                    out = "play"
+        
+        black.fadeOut()
+        title.update()
+        if out != None:
+            black2.fadeIn()
+            if black2.alpha >= 255:
+                if out == "play":
+                    v.state = queue#setup
+                    return
         refresh()
 
 def setup():
@@ -80,22 +106,28 @@ def setup():
         
         if next.pressed():
             v.name = name.outText
-            queue()
+            v.state = queue
+            return
         
         refresh()
 
 def queue():
     """The queue state"""
-    loading = menuItems.Text("Joining Queue", (640, 360), (150, 50, 50), "assets/fonts/Galdeano.ttf", 80, centred=True)
-    v.screen.fill((50, 100, 200))
+    loading = menuItems.Text("Joining Queue", (640, 540), (200, 200, 200), "assets/fonts/Galdeano.ttf", 80, centred=True)
+    """v.screen.fill((20, 20, 20))
     loading.update()
     change(py.Rect(0, 0, 1280, 720))
-    refresh()
+    refresh()"""
     py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
-    
-    skip = menuItems.Button("Skip Queue", (640, 500), 120, (0, 100, 200), (0, 50, 255), "assets/fonts/Galdeano.ttf", "skip", centred=True)
-    
+        
     network.queue(loading)
+    
+    loadingC = menuItems.LoadingCircle(300, pos=(640, 360))
+    
+    background = menuItems.StarBackground(direction=1, speedmod=5, stars=500)
+    
+    black = guiItems.blackFade()
+    black.alpha = 255
     while True:
         py.event.pump()
         v.events = []
@@ -103,7 +135,9 @@ def queue():
         v.clock.tick(30)
         
         
-        v.screen.fill((50, 100, 200))
+        v.screen.fill((20, 20, 20))
+        background.update()
+        loadingC.update()
         for event in v.events:
             if event.type == py.USEREVENT:
                 loading.text = loading.text + "."
@@ -114,14 +148,10 @@ def queue():
                 sys.exit()
         if v.game != None:
             v.serverConnected = True
-            game()
-            
-        skip.update()
-        if skip.pressed():
-            v.networkHalt = True
-            game()
+            v.state = game
             return
         loading.update()
+        black.fadeOut()
         refresh()
         
 def game():
@@ -202,7 +232,7 @@ def game():
                 if event.key == py.K_k:
                     raise Exception("Purposefully Crashed")
         if v.gameStop != None:
-            finish()
+            v.state = finish
             return
         
         network.changes()
@@ -336,7 +366,7 @@ def finish():
         for button in buttons:
             if button.ID == "title":
                 if button.pressed():
-                    mainMenu()
+                    v.state = mainMenu
                     return
         refresh()
 
@@ -392,16 +422,26 @@ def login():
     uname = menuItems.TextBox((640, 400, 200, 50), fontf="assets/fonts/FSB.ttf", size=30)
     pword = menuItems.TextBox((640, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*")
     
+    title = py.sprite.Group()
+    title.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
+    title.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
+    
     texts = py.sprite.Group()
-    texts.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
-    texts.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
+    un = menuItems.Text("username", (540, 350), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False)
+    texts.add(un)
+    pw = menuItems.Text("password", (540, 430), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False)
+    texts.add(pw)
     
-    texts.add(menuItems.Text("username", (540, 350), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
-    texts.add(menuItems.Text("password", (540, 430), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
-    
-    backFire = menuItems.Animation((0, -400, 1280, 1280), "assets/images/fire.png", 50, 1, 60)
+    backFire = menuItems.Animation((0, -400, 1280, 1280), "assets/images/menu/fire.png", 50, 1, 60)
     black = guiItems.blackFade()
     black.alpha = 255
+    black2 = guiItems.blackFade()
+    out = None
+    
+    loading = menuItems.LoadingCircle(200, pos=(640, 430))
+    loadingText = menuItems.Text("Logging in...", (640, 550), (255, 255, 255), "assets/fonts/Galdeano.ttf", 40, centred=True)
+    
+    wait = 0
     while True:
         py.event.pump()
         v.events = []
@@ -409,13 +449,134 @@ def login():
         v.clock.tick(60)
         change(py.Rect(0, 0, 1280, 720))
         v.screen.fill((0, 0, 0))
+        for button in buttons:
+            if button.pressed():
+                if button.ID == "login":
+                    out = "log"
+                    network.login(uname.final, pword.final)
+                if button.ID == "register":
+                    out = "reg"
         backFire.update()
         buttons.update()
         tween.update()
         uname.update()
         pword.update()
         texts.update()
+        if out != None:
+            black2.fadeIn()
+            if black2.alpha >= 255:
+                if out == "reg":
+                    v.state = register
+                    return
+                if out == "log":
+                    loading.update()
+                    loadingText.update()
+                    wait += 1
+                    if v.loggedIn != False and wait > 100:
+                        if v.loggedIn == True:
+                            v.username = uname.final
+                            v.password = pword.final
+                            v.state = mainMenu
+                            return
+                        elif v.loggedIn == "username":
+                            un.text = "username doesn't exist"
+                            uname.colour = (255, 0, 0)
+                            pword.colour = (255, 255, 255)
+                        elif v.loggedIn == "password":
+                            un.text = "Incorrect password"
+                            uname.colour = (255, 255, 255)
+                            pword.colour = (255, 0, 0)
+                        v.loggedIn = False
+                        out = None
+        else:
+            black2.fadeOut()
+                
+        title.update()
         black.fadeOut()
+        refresh()
+        
+def register():
+    buttons = py.sprite.Group()
+    buttons.add(menuItems.Button("Register", (640, 550), 50, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "register", centred=True, bsize=(200, 50)))
+    
+    uname = menuItems.TextBox((640, 400, 200, 50), fontf="assets/fonts/FSB.ttf", size=30)
+    pword1 = menuItems.TextBox((520, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*")
+    pword2 = menuItems.TextBox((760, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*")
+    
+    title = py.sprite.Group()
+    title.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
+    title.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
+    
+    texts = py.sprite.Group()
+    un = menuItems.Text("username", (540, 350), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False)
+    texts.add(un)
+    texts.add(menuItems.Text("password", (420, 430), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
+    texts.add(menuItems.Text("re-enter password", (660, 430), (255, 255, 255), "assets/fonts/Galdeano.ttf", 20, centred=False))
+    
+    backFire = menuItems.Animation((0, -400, 1280, 1280), "assets/images/menu/sparks.png", 33, 1, 80)
+    black = guiItems.blackFade()
+    black.alpha = 255
+    black2 = guiItems.blackFade()
+    out = None
+    
+    loading = menuItems.LoadingCircle(200)
+    loadingText = menuItems.Text("Registering Account...", (640, 480), (255, 255, 255), "assets/fonts/Galdeano.ttf", 40, centred=True)
+    wait = 0
+    while True:
+        py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        v.clock.tick(60)
+        change(py.Rect(0, 0, 1280, 720))
+        v.screen.fill((0, 0, 0))
+        for button in buttons:
+            if button.pressed():
+                if button.ID == "register":
+                    if uname.final == "":
+                        uname.colour = (255, 0, 0)
+                    elif pword1.final == "":
+                        uname.colour = (255, 255, 255)
+                        pword1.colour = (255, 0, 0)
+                    elif pword1.final != pword2.final:
+                        uname.colour = (255, 255, 255)
+                        pword1.colour = (255, 255, 255)
+                        pword2.colour = (255, 0, 0)
+                    else:
+                        out = "reg"
+                        network.registerAccount(uname.final, pword1.final)
+                        wait = 0
+        backFire.update()
+        buttons.update()
+        tween.update()
+        uname.update()
+        pword1.update()
+        pword2.update()
+        texts.update()
+        black.fadeOut()
+        title.update()
+        if out == "reg":
+            black2.fadeIn()
+            if black2.alpha >= 255:
+                loading.update()
+                loadingText.update()
+                if v.registerSuccess != None:
+                    if v.registerSuccess:
+                        loadingText.text = "Account Created!"
+                        wait += 1
+                        if wait >= 80:
+                            v.state = login
+                            return
+                    else:
+                        loadingText.text = "Username Already Exists"
+                        un.text = "username already exists"
+                        uname.colour = (255, 0, 0)
+                        wait += 1
+                        if wait >= 80:
+                            out = None
+                            loadingText.text = "Registering Account..."
+        else:
+            black2.fadeOut()
+                        
         refresh()
         
 def logo():
@@ -482,7 +643,7 @@ def logo():
             flash.set_alpha(flashAlpha)
             v.screen.blit(flash, (0, 0))
         if cycle > 340:
-            login()
+            v.state = login
             return
         
         v.screen.blit(l1, l1pos)

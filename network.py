@@ -1,6 +1,7 @@
 import sys
 import time
 import pathfind
+import hashlib
 try:
     import requests
 except:
@@ -32,7 +33,6 @@ def queue(loadObj):
     Args:
         loadObj (menuItems.Text): The text object that reflects the current queue state.
     """
-    localServerCheck()
     def _queue():
         key = random.random()
         payload = {"key": key, "name": v.name}
@@ -144,7 +144,35 @@ def getCards():
     data = ast.literal_eval(r.text)
     for value in data["cards"]:
         v.cards[value["id"]] = gameItems.card(value)
+
+def registerAccount(username, password):
+    def _registerAccount():
+        localServerCheck()
+        hash_object = hashlib.md5(password.encode())
+        hash = hash_object.hexdigest()
+        payload = {"username": username, "password": hash}
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "register_account/", data=jpayload)
+        data = ast.literal_eval(r.text)
+        v.registerSuccess = data
+    tr = threading.Thread(name="register", target=_registerAccount)
+    tr.start()
     
+def login(username, password):
+    def _login():
+        localServerCheck()
+        hash_object = hashlib.md5(password.encode())
+        hash = hash_object.hexdigest()
+        payload = {"username": username, "password": hash}
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "login/", data=jpayload)
+        print(r.text)
+        data = ast.literal_eval(r.text)
+        if data == True:
+            getCards()
+        v.loggedIn = data
+    tl = threading.Thread(name="login", target=_login)
+    tl.start()
 
 def changes():
     for event in v.networkChanges:
