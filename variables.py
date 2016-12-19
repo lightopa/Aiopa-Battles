@@ -1,4 +1,4 @@
-version = "0.1.0"
+version = "0.1.0-alpha"
 
 screen = None # The surface that everything blits to
 display = None # The display surface

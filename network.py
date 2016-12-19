@@ -196,7 +196,6 @@ def login(username, password):
         payload = {"username": username, "password": hash}
         jpayload = json.dumps(str(payload))
         r = requests.post(v.server + "login/", data=jpayload)
-        print(r.text)
         data = ast.literal_eval(r.text)
         if data == True:
             getCards()

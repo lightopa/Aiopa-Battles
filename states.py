@@ -16,7 +16,7 @@ def boot():
     v.display = py.display.set_mode((640, 360))
     v.screen = py.Surface((1280, 720))
     py.display.set_caption("Aiopa Battles")
-    icon = py.image.load("assets/images/icons/icon.ico")
+    icon = py.image.load("assets/images/icons/icon4.png")
     py.display.set_icon(icon)
     v.clock = py.time.Clock()
     py.key.set_repeat(200, 70)
@@ -44,6 +44,8 @@ def mainMenu():
     title.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
     title.add(menuItems.Text("Battles)", (640, 260), (220, 220, 220), "assets/fonts/Barbarian.ttf", 100, centred=True))
     
+    texts = py.sprite.Group()
+    texts.add(menuItems.Text("Version " + str(v.version), (20, 680), (240, 220, 220), "assets/fonts/Galdeano.ttf", 20, centred=False))
     black2 = guiItems.blackFade()
     out = None
     while True:
@@ -64,7 +66,7 @@ def mainMenu():
                     raise Exception("Purposefully Crashed")
         
         buttons.update()
-        
+        texts.update()
         for button in buttons:
             if button.ID == "play":
                 if button.pressed():
@@ -495,6 +497,7 @@ def login():
                         if v.loggedIn == True:
                             v.username = uname.final
                             v.password = pword.final
+                            network.saveMetadata()
                             v.state = mainMenu
                             return
                         elif v.loggedIn == "username":
