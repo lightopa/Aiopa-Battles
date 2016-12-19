@@ -49,7 +49,7 @@ class debug(py.sprite.Sprite):
         """An FPS counter at the top of the screen"""
         super().__init__()
         self.pos = (0, 0)
-        self.font = py.font.Font(None, int(20))
+        self.font = py.font.Font("assets/fonts/FSB.ttf", int(20))
     def update(self):
         self.label = self.font.render("fps: " + str(round(v.clock.get_fps())), 1, (100, 50, 50))
         change(v.screen.blit(self.label, (self.pos[0], self.pos[1])))

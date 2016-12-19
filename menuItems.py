@@ -95,6 +95,8 @@ class Text(py.sprite.Sprite):
         self.colour = colour
         self.size = size
         self.centred = centred
+        if font == None:
+            font = "assets/fonts/FSB.ttf"
         self.font = py.font.Font(font, self.size)
         
         self.oldText = None
@@ -240,7 +242,7 @@ class TextBox(py.sprite.Sprite):
                     "outline_colour": py.Color("black"),
                     "outline_width": 2,
                     "active_colour": py.Color("blue"),
-                    "fontf": None,
+                    "fontf": "assets/fonts/FSB.ttf",
                     "size": self.rect.height + 4,
                     "centre": True,
                     "default": "",

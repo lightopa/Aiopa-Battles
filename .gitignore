@@ -4,3 +4,5 @@
 /assets/images/RAW
 /logs/
 /.settings/
+/build/
+data.dat
