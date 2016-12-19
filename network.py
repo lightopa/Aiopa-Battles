@@ -2,6 +2,7 @@ import sys
 import time
 import pathfind
 import hashlib
+import os
 try:
     import requests
 except:
@@ -14,6 +15,7 @@ import variables as v
 import ast
 import threading
 import gameItems
+import pickle
 #from profilehooks import profile
 #from memory_profiler import profile as mprofile
 
@@ -35,7 +37,7 @@ def queue(loadObj):
     """
     def _queue():
         key = random.random()
-        payload = {"key": key, "name": v.name}
+        payload = {"key": key, "name": v.username}
         jpayload = json.dumps(str(payload))
         try:
             r = requests.post(v.server + "connect/", data=jpayload, timeout=1)
@@ -64,7 +66,6 @@ def checkQueue():
         try:
             r = requests.post(v.server + "check_queue/", data=jpayload, timeout=1)
         except requests.Timeout:
-            print("timeout")
             continue
         try:
             data = ast.literal_eval(r.text)
@@ -129,6 +130,7 @@ def gameJoin():
         v.gameTurn = data["turn"]
         v.opUnid = data["opponent"]
         v.opName = data["opName"]
+        getAccount(v.opName)
     t2 = threading.Thread(name="gameJoin", target=_gameJoin)
     t2.start()
     
@@ -157,6 +159,34 @@ def registerAccount(username, password):
         v.registerSuccess = data
     tr = threading.Thread(name="register", target=_registerAccount)
     tr.start()
+
+def updateAccount(send):
+    def _updateAccount():
+        localServerCheck()
+        hash_object = hashlib.md5(v.password.encode())
+        hash = hash_object.hexdigest()
+        payload = {"username": v.username, "password": hash, "update": send}
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "update_account/", data=jpayload)
+        data = ast.literal_eval(r.text)
+    tu = threading.Thread(name="update", target=_updateAccount)
+    tu.start()
+
+
+def saveMetadata():
+    with open("data.dat", "wb") as f:
+        data = {"username": v.username,
+                "password": v.password,
+                "version": v.version}
+        pickle.dump(data, f)
+
+def loadMetadata():
+    if os.path.exists("data.dat"):
+        with open("data.dat", "rb") as f:
+            data = pickle.load(f)
+            v.username = data["username"]
+            v.password = data["password"]
+        
     
 def login(username, password):
     def _login():
@@ -170,8 +200,24 @@ def login(username, password):
         data = ast.literal_eval(r.text)
         if data == True:
             getCards()
+            getAccount()
         v.loggedIn = data
     tl = threading.Thread(name="login", target=_login)
+    tl.start()
+    
+def getAccount(username=None):
+    if username == None:
+        username = v.username
+    def _getAccount():
+        localServerCheck()
+        payload = {"username": username}
+        jpayload = json.dumps(str(payload))
+        r = requests.post(v.server + "get_account/", data=jpayload)
+        if username == v.username:
+            v.account = ast.literal_eval(r.text)
+        else:
+            v.opAccount = ast.literal_eval(r.text)
+    tl = threading.Thread(name="login", target=_getAccount)
     tl.start()
 
 def changes():

@@ -21,7 +21,7 @@ def boot():
     v.clock = py.time.Clock()
     py.key.set_repeat(200, 70)
     #logo()
-    v.state = mainMenu#login
+    v.state = login#mainMenu
     while True:
         v.state()
     
@@ -248,17 +248,35 @@ def game():
             
             opName.text = v.opName
             opName.update()
-            pName.text = v.name
+            pName.text = v.username
             pName.update()
             v.effects.update()
             gui.update()
             
-            if v.pHealth <= 0:
+            if v.pHealth <= 0: # Opponent wins
+                if v.winner == None:
+                    v.account["competitive"] = 20
+                    cpMult = v.account["competitive"] / v.opAccount["competitive"]
+                    cpAdd = int(cpMult * -10)
+                    if cpAdd > -5:
+                        cpAdd = -5
+                    if v.account["competitive"] + cpAdd <= 0:
+                        cpAdd = -v.account["competitive"] + 1
+                    network.updateAccount({"losses": 1, "competitive": cpAdd})
                 v.winner = v.opUnid
-            if v.opHealth <= 0:
+            
+            if v.opHealth <= 0: # Player wins
+                if v.winner == None:
+                    cpMult = v.opAccount["competitive"] / v.account["competitive"]
+                    cpAdd = int(cpMult * 10)
+                    if cpAdd < 2:
+                        cpAdd = 2
+                    network.updateAccount({"wins": 1, "competitive": cpAdd})
                 v.winner = v.unid
                 
             if v.winner != None:
+                v.networkHalt = True
+                v.comp = (v.account["competitive"], cpAdd)
                 if winEffect == None:
                     if v.winner == v.opUnid:
                         t = pcstl
@@ -419,8 +437,9 @@ def login():
     buttons.add(menuItems.Button("Login", (640, 550), 50, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "login", centred=True, bsize=(200, 50)))
     buttons.add(menuItems.Button("Register", (640, 600), 25, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "register", centred=True, bsize=(200, 30)))
     
-    uname = menuItems.TextBox((640, 400, 200, 50), fontf="assets/fonts/FSB.ttf", size=30)
-    pword = menuItems.TextBox((640, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*")
+    network.loadMetadata()
+    uname = menuItems.TextBox((640, 400, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, default=v.username)
+    pword = menuItems.TextBox((640, 480, 200, 50), fontf="assets/fonts/FSB.ttf", size=30, active=False, replace="*", default=v.password)
     
     title = py.sprite.Group()
     title.add(menuItems.Text("Aiopa", (640, 130), (220, 220, 220), "assets/fonts/BlackChancery.ttf", 160, centred=True))
@@ -564,6 +583,9 @@ def register():
                         loadingText.text = "Account Created!"
                         wait += 1
                         if wait >= 80:
+                            v.username = uname.final
+                            v.password = pword1.final
+                            network.saveMetadata()
                             v.state = login
                             return
                     else:

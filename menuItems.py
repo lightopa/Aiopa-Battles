@@ -90,7 +90,7 @@ class Text(py.sprite.Sprite):
             centred (bool): Whether or not the text is centred - default=False
         """
         super().__init__()
-        self.text = text
+        self.text = str(text)
         self.pos = pos
         self.colour = colour
         self.size = size
@@ -113,6 +113,8 @@ class Text(py.sprite.Sprite):
             self.rpos[0] -= self.font.size(self.text)[0] / 2
             self.rpos[1] -= self.font.size(self.text)[1] / 2
             self.rpos = tuple(self.rpos)
+        self.rect = self.label.get_rect()
+        self.rect.topleft = self.rpos
         self.draw()
         
 """class textInput(py.sprite.Sprite):
