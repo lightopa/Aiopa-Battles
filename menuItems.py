@@ -310,6 +310,14 @@ class TextBox(py.sprite.Sprite):
             
 class Animation(py.sprite.Sprite):
     def __init__(self, rect, image, rows, columns, delay):
+        """An object that plays a spritesheet animation.
+        Args:
+            rect (pygame.Rect/(x, y, w, h): The position and size of the object
+            image (str): The path to the spritesheet
+            rows (int): The number of rows on the spritesheet
+            columns (int): The number of columns on the spritesheet
+            delay (int): The delay between each frame
+        """
         super().__init__()
         self.sheet = gameItems.SpriteSheet(image, rows, columns).images
         self.delay = delay
@@ -329,6 +337,11 @@ class Animation(py.sprite.Sprite):
 
 class ScrollingAnimation(py.sprite.Sprite):
     def __init__(self, image, speed):
+        """Scroll an image in an infinate loop.
+        Args:
+            image (str): The path to the image to scroll
+            speed (int): The scroll speed
+        """
         super().__init__()
         self.image = py.image.load(image)
         self.image = py.transform.scale(self.image, self.image.get_rect().fit(py.Rect(0, 0, 1280, 720)).size)
@@ -351,16 +364,26 @@ class ScrollingAnimation(py.sprite.Sprite):
 
 class StarBackground():
     def __init__(self, direction=0, speedmod=1, stars=400):
+        """Generate a starry/snowy background effect.
+        Args:
+            direction (int): The direction of the falling stars (0=down, clockwise)
+            speedmod (float): What to multiply the randomly generated speed of each partical by
+            stars (int): The number of particals to generate
+        """
         self.background = py.image.load("assets/images/menu/starback.png")
         self.stars = py.sprite.Group()
         for i in range(stars):
-            self.stars.add(self._Star((random.randint(0, 1280), random.randint(0, 720)), random.randint(12, 32), random.randint(-90, 90), random.uniform(0, 4) * speedmod, random.randint(1, 4), direction))
+            self.stars.add(self._Star(self, (random.randint(0, 1280), random.randint(0, 720)), random.randint(12, 32), random.randint(-90, 90), random.uniform(0, 4) * speedmod, random.randint(1, 4), direction))
+        
+        v.screen.blit(self.background, (0, 0))
+    
     
     def update(self):
-        v.screen.blit(self.background, (0, 0))
+        #v.screen.blit(self.background, (0, 0))
         self.stars.update()
+    
     class _Star(py.sprite.Sprite):
-        def __init__(self, pos, size, rotation, speed, num, direction):
+        def __init__(self, master, pos, size, rotation, speed, num, direction):
             super().__init__()
             self.image = py.image.load("assets/images/menu/star" + str(num) + ".png")
             self.image = py.transform.scale(self.image, (size, size))
@@ -372,12 +395,16 @@ class StarBackground():
             self.starty = pos[1]
             self.change = 0
             self.direction = direction
+            self.master = master
+            self.oldrect = self.rect
         
         def draw(self):
+            v.screen.blit(self.master.background, (0, 0), self.oldrect)
             change(v.screen.blit(self.image, self.rect))
         
         def update(self):
-            change(self.rect)
+            self.oldrect = self.rect.copy()
+            change(self.oldrect)
             self.change += self.speed * (-1 + (2 * (self.direction % 2 == 0))) # If odd * by -1
             if not self.direction % 2:
                 self.rect.y = self.starty + self.change
@@ -399,6 +426,12 @@ class StarBackground():
             
 class LoadingCircle(py.sprite.Sprite):
     def __init__(self, size, pos=(640, 360)):
+        """The general loading animation.
+        
+        Args:
+            size (int): The square size of the circle
+            pos (x, w): The position of the centre of the circle
+        """
         self.inner = py.image.load("assets/images/loading/inner.png")
         self.inner = py.transform.scale(self.inner, (size, size))
         self.outer = py.image.load("assets/images/loading/outer.png")
@@ -418,7 +451,12 @@ class LoadingCircle(py.sprite.Sprite):
         self.draw()
         
 def rot_center(image, angle):
-    """rotate an image while keeping its center and size"""
+    """Rotate an image while keeping its center and size.
+    
+    Args:
+        image (py.Surface): The surface to rotate
+        angle (float): The angle to rotate the image
+    """
     orig_rect = image.get_rect()
     rot_image = py.transform.rotate(image, angle)
     rot_rect = orig_rect.copy()

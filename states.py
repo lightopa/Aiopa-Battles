@@ -30,6 +30,7 @@ def mainMenu():
     """The main menu state"""
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
+    buttons.add(menuItems.Button("Test Run", (1000, 400), 40, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "test", centred=True, bsize=(150, 40)))
     buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
@@ -48,14 +49,18 @@ def mainMenu():
     texts.add(menuItems.Text("Version " + str(v.version), (20, 680), (240, 220, 220), "assets/fonts/Galdeano.ttf", 20, centred=False))
     black2 = guiItems.blackFade()
     out = None
+    
+    debug = guiItems.debug()
+    change(py.Rect(0, 0, 1280, 720))
     while True:
         py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
-        change(py.Rect(0, 0, 1280, 720))
-        v.screen.fill((0, 0, 0))
+        if black.alpha < 255:
+            v.screen.blit(background.background, (0, 0))
         background.update()
+        debug.update()
         
         for event in v.events:
             if event.type == py.QUIT:
@@ -68,9 +73,13 @@ def mainMenu():
         buttons.update()
         texts.update()
         for button in buttons:
-            if button.ID == "play":
-                if button.pressed():
+            if button.pressed():
+                if button.ID == "play":
                     out = "play"
+                if button.ID == "test":
+                    v.test = True
+                    v.state = game
+                    return
         
         black.fadeOut()
         title.update()
@@ -84,7 +93,6 @@ def mainMenu():
 
 def setup():
     """The state for setting your name and choosing a deck"""
-    name = menuItems.TextBox((640, 360, 200, 50), fontf="assets/fonts/Galdeano.ttf", centre=True, max=10)
     texts = py.sprite.Group()
     texts.add(menuItems.Text("Enter a name", (640, 280), (0, 0, 0), "assets/fonts/Galdeano.ttf", 80, centred=True))
     next = menuItems.Button("Join Queue", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "next", centred=True)
@@ -102,12 +110,10 @@ def setup():
         
         v.screen.fill((50, 100, 200))
         
-        name.update()
         texts.update()
         next.update()
         
         if next.pressed():
-            v.name = name.outText
             v.state = queue
             return
         
@@ -116,10 +122,6 @@ def setup():
 def queue():
     """The queue state"""
     loading = menuItems.Text("Joining Queue", (640, 540), (200, 200, 200), "assets/fonts/Galdeano.ttf", 80, centred=True)
-    """v.screen.fill((20, 20, 20))
-    loading.update()
-    change(py.Rect(0, 0, 1280, 720))
-    refresh()"""
     py.time.set_timer(py.USEREVENT, 1000) #dot dot dot
         
     network.queue(loading)
@@ -158,8 +160,14 @@ def queue():
         
 def game():
     """The game state"""
-    network.getCards()
-    network.gameJoin()
+    if not v.test:
+        network.getCards()
+        network.gameJoin()
+    else:
+        v.gameStarter = v.unid
+        v.gameTurn = {"player": v.unid, "time": 0}
+        v.opUnid = 1
+        v.opName = "Test"
     background = py.image.load("assets/images/paper.png").convert()
     background = py.transform.scale(background, (1280, 720))
     v.tiles = py.sprite.Group()
@@ -189,8 +197,9 @@ def game():
     fade = guiItems.blackFade(100, 10)
     
     coinScreen = guiItems.coinScreen()
-    v.pause = True
-    v.pauseType = "coin"
+    if not v.test:
+        v.pause = True
+        v.pauseType = "coin"
     
     turnButton = menuItems.Button("End Turn", (1100, 630), 40, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "turn", centred=True, bsize=(150, 150))
     turnText = menuItems.Text("", (1100, 530), (0, 0, 0), "assets/fonts/Galdeano.ttf", 40, True)
@@ -205,8 +214,8 @@ def game():
     v.pturn = guiItems.PlayerTurn()
     
     v.effects = py.sprite.Group()
-    
-    network.gameLoop()
+    if not v.test:
+        network.gameLoop()
     
     change(py.Rect(0, 0, 1280, 720))
     
@@ -218,8 +227,10 @@ def game():
         v.events = py.event.get()
         if v.debug and py.key.get_pressed()[py.K_SPACE]:
             v.clock.tick(10)
-        else:
+        elif not v.test:
             v.clock.tick(60)
+        else:
+            v.clock.tick()
         v.hoverTile = None
         v.screen.blit(background, (0, 0))
         
@@ -391,6 +402,7 @@ def finish():
         refresh()
 
 def crash(crash):
+    """The state that displays a crash report"""
     texts = py.sprite.Group()
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Copy to Clipboard", (40, 650), 40, (50, 255, 50), (0, 200, 0), None, "copy"))
@@ -435,6 +447,7 @@ def crash(crash):
         refresh()
 
 def login():
+    """The state that handles logging into an account"""
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Login", (640, 550), 50, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "login", centred=True, bsize=(200, 50)))
     buttons.add(menuItems.Button("Register", (640, 600), 25, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "register", centred=True, bsize=(200, 30)))
@@ -518,6 +531,7 @@ def login():
         refresh()
         
 def register():
+    """The state that handles registering a new account"""
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Register", (640, 550), 50, (255, 100, 100), (200, 150, 150), "assets/fonts/Galdeano.ttf", "register", centred=True, bsize=(200, 50)))
     
@@ -605,6 +619,7 @@ def register():
         refresh()
         
 def logo():
+    """The state that plays the logo animation"""
     font = py.font.Font("assets/fonts/slant.ttf", 100)
     l1 = font.render("Lightopa", 1, (0, 255, 255))
     font = py.font.Font("assets/fonts/slant.ttf", 120)

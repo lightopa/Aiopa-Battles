@@ -350,12 +350,19 @@ class gameCard(py.sprite.Sprite):
             self.preCard = []
             self.postCard = []
     
-    
     def update(self):
         self.draw()
 
 class spellCard(gameCard):
     def __init__(self, cardClass, order=0, changes={}, renSize=(155, 220), intro=False):
+        """A spell card.
+            Args:
+            cardClass (card): The card data object for this spell
+            order (int): Where the card is in the hand
+            changes (dict): Any changes to the card's stats
+            renSize (w, h): The size at which to render the card
+            intro (bool): Whether or not to play the deck to hand animation
+        """
         super().__init__(cardClass, order=order, changes=changes, renSize=renSize, intro=intro)
         self.tile = None
         self._render(renSize)
@@ -412,6 +419,17 @@ class spellCard(gameCard):
 
 class minionCard(gameCard):
     def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(155, 220), intro=False):
+        """A minion card.
+            Args:
+            cardClass (card): The card data object for this minion
+            order (int): Where the card is in the hand
+            tile (tile): What tile this card is on
+            unid (str): The unid of this card
+            player (int): The unid of the player that owns this card
+            changes (dict): Any changes to the card's stats
+            renSize (w, h): The size at which to render the card
+            intro (bool): Whether or not to play the deck to hand animation
+        """
         self.updateDelay = 0
         self.schRender = True
         super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize, intro=intro)
@@ -713,6 +731,10 @@ class castle(py.sprite.Sprite):
 
 class blankCard(py.sprite.Sprite):
     def __init__(self, order):
+        """A blank deck card.
+        Args:
+            order (int): What position the card is in the deck
+        """
         super().__init__()
         self.image = py.image.load("assets/images/cards/card_back.png").convert_alpha()
         self.image = py.transform.scale(self.image, (124, 176))
@@ -745,6 +767,15 @@ class blankCard(py.sprite.Sprite):
 
 class Effect(py.sprite.Sprite):
     def __init__(self, type, target=None, pos=None, sheet=None, image=None):
+        """Plays an animation.
+        
+        Args:
+            type (str): The type of animation to play
+            target (Tile/minionCard): The target of the effect
+            pos (x, y): The position of the effect (depends on effect)
+            sheet (str): Path to a spritesheet for the effect (depends on effect)
+            image (str): Path to a image for the effect (depends on effect)
+        """
         super().__init__()
         self.type = type
         self.target = target

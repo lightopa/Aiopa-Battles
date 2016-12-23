@@ -46,7 +46,7 @@ class blackFade(py.sprite.Sprite):
 
 class debug(py.sprite.Sprite):
     def __init__(self):
-        """An FPS counter at the top of the screen"""
+        """Displays useful data about the game as it is running"""
         super().__init__()
         self.pos = (0, 0)
         self.font = py.font.Font("assets/fonts/FSB.ttf", int(20))
@@ -134,6 +134,11 @@ class coinScreen(py.sprite.Sprite):
 
 class healthBar(py.sprite.Sprite):
     def __init__(self, friendly):
+        """A health indicator that sits underneath each player's catsle.
+        
+        Args:
+            friendly (bool): Is the bar for the player?
+        """
         super().__init__()
         self.friendly = friendly
         self.rect = py.Rect(0, 0, 200, 50)
@@ -164,6 +169,7 @@ class healthBar(py.sprite.Sprite):
 
 class timer(py.sprite.Sprite):
     def __init__(self):
+        """The timer for current turn"""
         super().__init__()
         self.rect = py.Rect(340, 45, 600, 10)
         self.image = py.Surface(self.rect.size)
@@ -194,10 +200,13 @@ class timer(py.sprite.Sprite):
             self.rimage.fill((255, 0, 0), special_flags=py.BLEND_MULT)
         else:
             self.rimage = self.image
+        if v.test:
+            v.timeLeft = 10
         self.draw()
 
 class PlayerTurn(py.sprite.Sprite):
     def __init__(self):
+        """An indicator for who's turn it is"""
         self.image = py.image.load("assets/images/turn.png").convert_alpha()
         self.image = py.transform.scale(self.image, (400, 150))
         self.rect = self.image.get_rect()
@@ -222,6 +231,7 @@ class PlayerTurn(py.sprite.Sprite):
 
 class ManaMeter(py.sprite.Sprite):
     def __init__(self):
+        """An indicator for how much mana the player has"""
         super().__init__()
         self.image = py.image.load("assets/images/mana.png").convert_alpha()
         self.image = py.transform.scale(self.image, (20, 20))

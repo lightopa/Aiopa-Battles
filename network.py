@@ -108,7 +108,7 @@ def gameLoop():
                         v.networkChanges.extend(data["events"])
                 #print("Network Time:", time.time() - netTime)
                 v.ping.append(time.time() - netTime)
-                while time.time() - netTime < 0.3:
+                while time.time() - netTime < 0.5:
                     pass
         except SyntaxError:
             print(r.text)
@@ -148,6 +148,7 @@ def getCards():
         v.cards[value["id"]] = gameItems.card(value)
 
 def registerAccount(username, password):
+    """Will register a new account with the server"""
     def _registerAccount():
         localServerCheck()
         hash_object = hashlib.md5(password.encode())
@@ -161,6 +162,7 @@ def registerAccount(username, password):
     tr.start()
 
 def updateAccount(send):
+    """Will update an account's stats"""
     def _updateAccount():
         localServerCheck()
         hash_object = hashlib.md5(v.password.encode())
@@ -174,6 +176,7 @@ def updateAccount(send):
 
 
 def saveMetadata():
+    """Will save some data to a pickled file"""
     with open("data.dat", "wb") as f:
         data = {"username": v.username,
                 "password": v.password,
@@ -181,6 +184,7 @@ def saveMetadata():
         pickle.dump(data, f)
 
 def loadMetadata():
+    """Will load data from a pickled file"""
     if os.path.exists("data.dat"):
         with open("data.dat", "rb") as f:
             data = pickle.load(f)
@@ -189,22 +193,27 @@ def loadMetadata():
         
     
 def login(username, password):
+    """Will 'login' to the server"""
     def _login():
         localServerCheck()
-        hash_object = hashlib.md5(password.encode())
-        hash = hash_object.hexdigest()
-        payload = {"username": username, "password": hash}
-        jpayload = json.dumps(str(payload))
-        r = requests.post(v.server + "login/", data=jpayload)
-        data = ast.literal_eval(r.text)
-        if data == True:
-            getCards()
-            getAccount()
-        v.loggedIn = data
+        try:
+            hash_object = hashlib.md5(password.encode())
+            hash = hash_object.hexdigest()
+            payload = {"username": username, "password": hash}
+            jpayload = json.dumps(str(payload))
+            r = requests.post(v.server + "login/", data=jpayload, timeout=1)
+            data = ast.literal_eval(r.text)
+            if data == True:
+                getCards()
+                getAccount()
+            v.loggedIn = data
+        except:
+            _login()
     tl = threading.Thread(name="login", target=_login)
     tl.start()
     
 def getAccount(username=None):
+    """Will get account stats from a given username"""
     if username == None:
         username = v.username
     def _getAccount():
@@ -220,6 +229,7 @@ def getAccount(username=None):
     tl.start()
 
 def changes():
+    """Will implement the list of changes fetched from the game server"""
     for event in v.networkChanges:
         if event["type"] == "place":
             pos = event["position"]

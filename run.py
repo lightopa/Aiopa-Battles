@@ -34,22 +34,7 @@ def crashHandler():
     with open(name, "r") as crash:
         states.crash(crash.read())
 
-
-if __name__ == "__main__":
-    client = Client('https://cc2ec006b88948d79766c93c41ad1346:4a0c698e2fe4499d9ee728a8a91138f3@sentry.io/114800')
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("logs/crash reports", exist_ok=True)
-    
-    try:
-        cProfile.run("states.boot()", "logs/Out.txt")
-    except Exception as e:
-        traceback.print_exc()
-        v.networkHalt = True
-        network.gameLeave("crash")
-        crashHandler()
-        if False:
-            client.captureException()
-    
+def calltimeHandler():
     with open("logs/Calltime Dump " + time.strftime("%Y-%m-%d_%H.%M.%S") + ".txt", "w") as fc:
         p = pstats.Stats("logs/Out.txt", stream=fc)
         p.strip_dirs()
@@ -59,3 +44,20 @@ if __name__ == "__main__":
         for k, v in d.items():
             funcstats[k] = v[2]
         p.sort_stats("time").print_stats()
+
+
+if __name__ == "__main__":
+    client = Client('https://cc2ec006b88948d79766c93c41ad1346:4a0c698e2fe4499d9ee728a8a91138f3@sentry.io/114800')
+    os.makedirs("logs", exist_ok=True)
+    os.makedirs("logs/crash reports", exist_ok=True)
+    
+    try:
+        cProfile.run("states.boot()", "logs/Out.txt")
+        calltimeHandler()
+    except Exception as e:
+        traceback.print_exc()
+        v.networkHalt = True
+        network.gameLeave("crash")
+        crashHandler()
+        if False:
+            client.captureException()
