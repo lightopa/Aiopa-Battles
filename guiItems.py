@@ -148,23 +148,27 @@ class healthBar(py.sprite.Sprite):
             self.rect.center = (1100, 410)
         self.image = py.image.load("assets/images/healthBar.png").convert_alpha()
         self.font = py.font.Font("assets/fonts/Galdeano.ttf", 35)
+        self.oldHealth = float("inf")
         self.update()
     
     def draw(self):
         change(v.screen.blit(self.rimage, self.rect))
         change(v.screen.blit(self.rtext, (self.rect.centerx - self.rtext.get_rect().width/2, self.rect.centery - self.rtext.get_rect().height/2)))
     
-    def update(self): #TODO: Reduce fills
-        self.rimage = self.image.copy()
-        self.rimage.fill((200, 150, 150), special_flags=py.BLEND_MULT)
-        if self.friendly:
-            r = py.Rect(0, 0, 200 * v.pHealth/20, 50)
-            self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
-            self.rtext = self.font.render(str(v.pHealth), 1, (0, 0, 0))
-        else:
-            r = py.Rect(0, 0, 200 * v.opHealth/20, 50)
-            self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
-            self.rtext = self.font.render(str(v.opHealth), 1, (0, 0, 0))
+    def update(self):
+        if (self.friendly and self.oldHealth != v.pHealth) or (not self.friendly and self.oldHealth != v.opHealth):
+            self.rimage = self.image.copy()
+            self.rimage.fill((200, 150, 150), special_flags=py.BLEND_MULT)
+            if self.friendly:
+                r = py.Rect(0, 0, 200 * v.pHealth/20, 50)
+                self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+                self.rtext = self.font.render(str(v.pHealth), 1, (0, 0, 0))
+                self.oldHealth = v.pHealth
+            else:
+                r = py.Rect(0, 0, 200 * v.opHealth/20, 50)
+                self.rimage.fill((255, 0, 0), rect=r, special_flags=py.BLEND_MULT)
+                self.rtext = self.font.render(str(v.opHealth), 1, (0, 0, 0))
+                self.oldHealth = v.opHealth
         self.draw()
 
 class timer(py.sprite.Sprite):
@@ -180,6 +184,8 @@ class timer(py.sprite.Sprite):
         self.mask = py.Surface((self.rect.width, self.rect.height - 3))
         self.mask.fill((75, 75, 75))
         self.mask.set_alpha(0)
+        
+        self.oldTurn = None
         self.update()
     
     def draw(self):
@@ -190,16 +196,20 @@ class timer(py.sprite.Sprite):
         while v.gameTurn == None:
             py.time.delay(10)
         v.timeLeft = v.turnLength - (time.time() - v.gameTurn["time"])
+        
+        if self.oldTurn != v.gameTurn["player"] and v.gameTurn != None:
+            if v.gameTurn["player"] != v.unid:
+                self.rimage = self.image.copy()
+                self.rimage.fill((255, 0, 0), special_flags=py.BLEND_MULT)
+                self.oldTurn = v.gameTurn["player"]
+            else:
+                self.rimage = self.image
+        
         if v.timeLeft/v.turnLength > 0.25:
-            self.image.set_alpha(200 - v.timeLeft/v.turnLength * 200)
+            self.rimage.set_alpha(200 - v.timeLeft/v.turnLength * 200)
             self.mask.set_alpha(200 - v.timeLeft/v.turnLength * 200)
         if v.timeLeft <= 0:
             v.timeLeft = 0
-        if v.gameTurn != None and v.gameTurn["player"] != v.unid:
-            self.rimage = self.image.copy()
-            self.rimage.fill((255, 0, 0), special_flags=py.BLEND_MULT)
-        else:
-            self.rimage = self.image
         if v.test:
             v.timeLeft = 10
         self.draw()

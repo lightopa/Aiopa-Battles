@@ -53,7 +53,7 @@ def mainMenu():
     debug = guiItems.debug()
     change(py.Rect(0, 0, 1280, 720))
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
@@ -100,7 +100,7 @@ def setup():
     change(py.Rect(0, 0, 1280, 720))
     while True:
         v.clock.tick(30)
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         
@@ -133,13 +133,11 @@ def queue():
     black = guiItems.blackFade()
     black.alpha = 255
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
         
-        
-        v.screen.fill((20, 20, 20))
         background.update()
         loadingC.update()
         for event in v.events:
@@ -222,7 +220,7 @@ def game():
     winEffect = None
         
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         if v.debug and py.key.get_pressed()[py.K_SPACE]:
@@ -382,7 +380,7 @@ def finish():
     change(py.Rect(0, 0, 1280, 720))
     
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.screen.fill((50, 100, 200))
         v.events = []
         v.events = py.event.get()
@@ -424,7 +422,7 @@ def crash(crash):
             
     change(py.Rect(0, 0, 1280, 720))
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.screen.fill((50, 0, 255))
@@ -477,12 +475,11 @@ def login():
     
     wait = 0
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
         change(py.Rect(0, 0, 1280, 720))
-        v.screen.fill((0, 0, 0))
         for button in buttons:
             if button.pressed():
                 if button.ID == "login":
@@ -559,12 +556,11 @@ def register():
     loadingText = menuItems.Text("Registering Account...", (640, 480), (255, 255, 255), "assets/fonts/Galdeano.ttf", 40, centred=True)
     wait = 0
     while True:
-        py.event.pump()
+        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
         change(py.Rect(0, 0, 1280, 720))
-        v.screen.fill((0, 0, 0))
         for button in buttons:
             if button.pressed():
                 if button.ID == "register":
@@ -644,7 +640,7 @@ def logo():
     
     while True:
         v.clock.tick(60)
-        py.event.pump()
+        #py.event.pump()
         v.screen.fill((0, 0, 0))
         change(py.Rect(0, 0, 1280, 720))
 

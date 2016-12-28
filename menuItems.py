@@ -299,14 +299,17 @@ class TextBox(py.sprite.Sprite):
         change(self.rect)
         outline_colour = self.active_colour if self.active else self.outline_colour
         outline = self.rect.inflate(self.outline_width * 2, self.outline_width * 2)
-        v.screen.fill(outline_colour, outline)
-        v.screen.fill(self.colour, self.rect)
+        #v.screen.fill(outline_colour, outline)
+        #v.screen.fill(self.colour, self.rect)
+        py.draw.rect(v.screen, outline_colour, outline)
+        py.draw.rect(v.screen, self.colour, self.rect)
         if self.rendered:
             v.screen.blit(self.rendered, self.render_rect, self.render_area)
         if self.blink and self.active:
             curse = self.render_area.copy()
             curse.topleft = self.render_rect.topleft
-            v.screen.fill(self.font_colour, (curse.right + 1, curse.y, 2, curse.h))
+            #v.screen.fill(self.font_colour, (curse.right + 1, curse.y, 2, curse.h))
+            py.draw.rect(v.screen, self.font_colour, (curse.right + 1, curse.y, 2, curse.h))
             
 class Animation(py.sprite.Sprite):
     def __init__(self, rect, image, rows, columns, delay):

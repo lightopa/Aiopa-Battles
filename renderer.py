@@ -21,8 +21,8 @@ def getChangeCaller(index):
     
 def refresh():
     """Updates the display"""
-    oldChanges = list(v.oldChanges)
-    v.oldChanges = [r.copy() for r in v.changes]
+    #oldChanges = list(v.oldChanges)
+    #v.oldChanges = [r.copy() for r in v.changes]
  
     for event in v.events:
         if event.type == py.KEYDOWN:
@@ -51,13 +51,14 @@ def refresh():
         else:
             py.transform.scale(v.screen, fit_to_rect.size, v.display)
         
-        for c in v.changes + oldChanges:
+        for c in v.changes:
             c.x /= 2
             c.y /= 2
             c.width /= 2
             c.height /= 2
     
-    changes = v.changes + oldChanges
+    changes = v.changes + v.oldChanges
+    v.oldChanges = v.changes
     if (v.windowWidth, v.windowHeight) != (1280, 720):
         scale = ((1280, 720)[0]/fit_to_rect[2], (1280, 720)[1]/fit_to_rect[3])
         x,y = py.mouse.get_pos()

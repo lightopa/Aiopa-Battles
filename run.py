@@ -37,6 +37,7 @@ def crashHandler():
 def calltimeHandler():
     with open("logs/Calltime Dump " + time.strftime("%Y-%m-%d_%H.%M.%S") + ".txt", "w") as fc:
         p = pstats.Stats("logs/Out.txt", stream=fc)
+        p.add(network.gameLoopsStats)
         p.strip_dirs()
         d = p.__dict__["stats"]
         funcstats = {}

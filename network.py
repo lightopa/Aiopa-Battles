@@ -3,6 +3,7 @@ import time
 import pathfind
 import hashlib
 import os
+import cProfile
 try:
     import requests
 except:
@@ -77,13 +78,21 @@ def checkQueue():
         except:
             pass
 
+gameLoopsStats = None
+
+
 def gameLoop():
     """Continuously checks the server for updates, and send any local updates to the server"""
     def _gameLoop():
+        prof = cProfile.Profile()
+        prof.enable()
         try:
             while True:
                 netTime = time.time()
                 if v.networkHalt == True:
+                    prof.disable()
+                    global gameLoopsStats
+                    gameLoopsStats = prof
                     return
                 if v.gameTurn != None:
                     sentEvents = []
@@ -108,15 +117,14 @@ def gameLoop():
                         v.networkChanges.extend(data["events"])
                 #print("Network Time:", time.time() - netTime)
                 v.ping.append(time.time() - netTime)
-                while time.time() - netTime < 0.5:
-                    pass
+                while time.time() - netTime < 1:
+                    time.sleep(0)
         except SyntaxError:
             print(r.text)
             v.gameStop = "bad"
             return
     
     t3 = threading.Thread(name="gameLoop", target=_gameLoop)
-    t3.daemon = True
     t3.start()
 
 def gameJoin():
