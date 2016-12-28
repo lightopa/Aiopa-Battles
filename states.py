@@ -13,7 +13,7 @@ from functools import wraps
 def boot():
     """Sets up the game and starts the mainMenu state"""
     py.init()
-    v.display = py.display.set_mode((640, 360))
+    v.display = py.display.set_mode((640, 360), py.HWSURFACE|py.DOUBLEBUF) #TODO: make this an option
     v.screen = py.Surface((1280, 720))
     py.display.set_caption("Aiopa Battles")
     icon = py.image.load("assets/images/icons/icon4.png")
@@ -376,6 +376,8 @@ def finish():
         texts.add(menuItems.Text("Your opponent timed out", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
     if v.gameStop == "bad":
         texts.add(menuItems.Text("Bad input from server (view logs)", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
+    if v.gameStop == "missing":
+        texts.add(menuItems.Text("The server misplaced the current game data", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
     
     change(py.Rect(0, 0, 1280, 720))
     

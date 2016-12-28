@@ -33,7 +33,7 @@ def refresh():
                     v.windowHeight = 720
                     v.windowWidth = 1280
                 else:
-                    v.display = py.display.set_mode((640, 360))
+                    v.display = py.display.set_mode((640, 360), py.HWSURFACE|py.DOUBLEBUF)
                     v.windowHeight = 360
                     v.windowWidth = 640
                 change(py.Rect(0, 0, 1280, 720))
