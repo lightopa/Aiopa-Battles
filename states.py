@@ -13,7 +13,8 @@ from functools import wraps
 def boot():
     """Sets up the game and starts the mainMenu state"""
     py.init()
-    v.display = py.display.set_mode((640, 360), py.HWSURFACE|py.DOUBLEBUF) #TODO: make this an option
+    network.loadMetadata()
+    updateDisplay()
     v.screen = py.Surface((1280, 720))
     py.display.set_caption("Aiopa Battles")
     icon = py.image.load("assets/images/icons/icon4.png")
@@ -23,6 +24,7 @@ def boot():
     #logo()
     v.state = login#mainMenu
     while True:
+        change(py.Rect(0, 0, 1280, 720))
         v.state()
     
 
@@ -31,10 +33,9 @@ def mainMenu():
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Test Run", (1000, 400), 40, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "test", centred=True, bsize=(150, 40)))
-    buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
-    buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
-    buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(190, 80)))
-    change(py.Rect(0, 0, 1280, 720))
+    buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(400, 100)))
+    buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "options", centred=True, bsize=(190, 80)))
+    buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(190, 80)))
     #background = menuItems.Animation((0, -32, 1339, 752), "assets/images/stars.png", 18, 1, 50)
     #background = menuItems.ScrollingAnimation("assets/images/menu/stars.png", 2)
     background = menuItems.StarBackground()
@@ -50,18 +51,12 @@ def mainMenu():
     black2 = guiItems.blackFade()
     out = None
     
-    debug = guiItems.debug()
-    change(py.Rect(0, 0, 1280, 720))
     while True:
         #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
-        if black.alpha < 255:
-            v.screen.blit(background.background, (0, 0))
-        background.update()
-        debug.update()
-        
+        background.update()        
         for event in v.events:
             if event.type == py.QUIT:
                 v.networkHalt = True
@@ -80,6 +75,8 @@ def mainMenu():
                     v.test = True
                     v.state = game
                     return
+                if button.ID == "options":
+                    out = "options"
         
         black.fadeOut()
         title.update()
@@ -89,6 +86,76 @@ def mainMenu():
                 if out == "play":
                     v.state = queue#setup
                     return
+                if out == "options":
+                    v.state = options
+                    return
+        refresh()
+
+def options():
+    buttons = py.sprite.Group()
+    buttons.add(menuItems.Button("Back", (120, 660), 60, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "back", bsize=(200, 80), centred=True))
+    buttons.add(menuItems.Button("Apply", (1160, 660), 60, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "apply", bsize=(200, 80), centred=True))
+    
+    ops = py.sprite.Group()
+    ops.add(menuItems.Option((50, 50), "Fullscreen", ["True", "False"], 80, "full", type="switch", selected=str(v.fullscreen), disabled=False))
+    ops.add(menuItems.Option((50, 150), "Debug Info", ["True", "False"], 80, "debug", type="switch", selected=str(v.debug), disabled=False))
+    ops.add(menuItems.Option((50, 250), "Ping Frequency", ["100ms", "300ms", "500ms", "700ms", "1000ms"], 80, "ping", type="dropdown", selected=str(int(v.pingFreq * 1000)) + "ms", disabled=False))
+    
+    infos = py.sprite.Group()
+    infos.add(menuItems.InfoBubble((700, 90), "Toggle if the game is in fullscreen mode", "right", 40, (240, 200, 220), 35, target="i"))
+    infos.add(menuItems.InfoBubble((730, 190), "Toggle the display of debug information in the top left corner", "right", 40, (240, 200, 220), 30, target="i"))
+    infos.add(menuItems.InfoBubble((770, 290), "The rate at which moves are pushed/fetched from the server. A lower time frequency will decrease fps on some systems", "right", 40, (240, 200, 220), 30, target="i"))
+    background = menuItems.StarBackground(direction=2, speedmod=0.5, stars=200)
+    
+    black = guiItems.blackFade()
+    black.alpha = 255
+    
+    black2 = guiItems.blackFade()
+    out = None
+    
+    while True:
+        v.clock.tick(30)
+        #py.event.pump()
+        v.events = []
+        v.events = py.event.get()
+        
+        for event in v.events:
+            if event.type == py.QUIT:
+                sys.exit()
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_F11:
+                    for op in ops:
+                        if op.ID == "full":
+                            op.selected = str(not v.fullscreen)
+        
+        for button in buttons:
+            if button.pressed():
+                if button.ID == "apply":
+                    for op in ops:
+                        if op.ID == "full":
+                            v.fullscreen = op.selected == "True"
+                        if op.ID == "debug":
+                            v.debug = op.selected == "True"
+                        if op.ID == "ping":
+                            v.pingFreq = int(op.selected.strip("ms")) / 1000
+                    updateDisplay()
+                    network.saveMetadata()
+                if button.ID == "back":
+                    out = "back"
+        
+        background.update()
+                
+        buttons.update()
+        ops.update()
+        infos.update()
+        
+        black.fadeOut()
+        if out != None:
+            black2.fadeIn()
+            if black2.alpha >= 255:
+                if out == "back":
+                    v.state = mainMenu
+                    return
         refresh()
 
 def setup():
@@ -97,7 +164,6 @@ def setup():
     texts.add(menuItems.Text("Enter a name", (640, 280), (0, 0, 0), "assets/fonts/Galdeano.ttf", 80, centred=True))
     next = menuItems.Button("Join Queue", (640, 500), 80, (100, 150, 200), (150, 200, 255), "assets/fonts/Galdeano.ttf", "next", centred=True)
     
-    change(py.Rect(0, 0, 1280, 720))
     while True:
         v.clock.tick(30)
         #py.event.pump()
@@ -188,7 +254,6 @@ def game():
     for i in range(len(v.deck)):
         v.gameDeck.add(gameItems.blankCard(i))
     
-    debug = guiItems.debug()
     castles = py.sprite.Group()
     castles.add(gameItems.castle(True))
     castles.add(gameItems.castle(False))
@@ -214,9 +279,7 @@ def game():
     v.effects = py.sprite.Group()
     if not v.test:
         network.gameLoop()
-    
-    change(py.Rect(0, 0, 1280, 720))
-    
+        
     winEffect = None
         
     while True:
@@ -361,7 +424,6 @@ def game():
             if v.pauseType == "win":
                 winScreen.update()
         
-        debug.update()
         refresh()
 
 def finish():
@@ -378,9 +440,7 @@ def finish():
         texts.add(menuItems.Text("Bad input from server (view logs)", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
     if v.gameStop == "missing":
         texts.add(menuItems.Text("The server misplaced the current game data", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
-    
-    change(py.Rect(0, 0, 1280, 720))
-    
+        
     while True:
         #py.event.pump()
         v.screen.fill((50, 100, 200))
@@ -422,7 +482,6 @@ def crash(crash):
         texts.add(menuItems.Text(out, (60, posy), (0, 0, 0), None, 30))
         posy += 32
             
-    change(py.Rect(0, 0, 1280, 720))
     while True:
         #py.event.pump()
         v.events = []

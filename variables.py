@@ -7,7 +7,6 @@ windowWidth = 640 # The width to make the window
 windowHeight = 360 # The height to make the window
 mouse_pos = (0, 0) # The position of the mouse
 events = [] # The events list
-fullscreen = False # If the game is fullscreen
 pause = False # If the game is paused
 pauseType = None # Why the game is paused
 changes = [] # All rects that have been updated this tick
@@ -18,8 +17,13 @@ ping = [0] # List of gamelopp response times
 cardUnid = 0 # The last used card unid
 turnLength = 40 # The length of the turn (seconds)
 timeLeft = turnLength # The amount of time left in the current turn
-debug = False # Debug mode
+debug = True # Debug mode
 test = False # Test mode
+
+fullscreen = False # If the game is fullscreen
+pingFreq = 0.5
+#hwsurface = True
+#doublebuf = True
 
 pHealth = 2 # The player's health
 totalMana = 0 # The total mana available this turn
