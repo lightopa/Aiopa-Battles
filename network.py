@@ -99,6 +99,8 @@ def gameLoop():
                     if len(v.networkEvents) > 0:
                         #print("Out events", v.networkEvents)
                         sentEvents = list(v.networkEvents)
+                        if v.game == None:
+                            return
                         payload = {"unid": v.unid, "game": v.game, "type": "update", "events": sentEvents}
                         jpayload = json.dumps(str(payload))
                         r = requests.post(v.server + "game_loop/", data=jpayload)
@@ -117,8 +119,8 @@ def gameLoop():
                         v.networkChanges.extend(data["events"])
                 #print("Network Time:", time.time() - netTime)
                 v.ping.append(time.time() - netTime)
-                while time.time() - netTime < 1:
-                    time.sleep(0)
+                while time.time() - netTime < v.pingFreq:
+                    time.sleep(v.pingFreq / 5)
         except SyntaxError:
             print(r.text)
             v.gameStop = "bad"
@@ -188,16 +190,25 @@ def saveMetadata():
     with open("data.dat", "wb") as f:
         data = {"username": v.username,
                 "password": v.password,
-                "version": v.version}
+                "version": v.version,
+                "fullscreen": v.fullscreen,
+                "pingFreq": v.pingFreq,
+                "debug": v.debug}
         pickle.dump(data, f)
 
 def loadMetadata():
     """Will load data from a pickled file"""
-    if os.path.exists("data.dat"):
-        with open("data.dat", "rb") as f:
-            data = pickle.load(f)
-            v.username = data["username"]
-            v.password = data["password"]
+    try:
+        if os.path.exists("data.dat"):
+            with open("data.dat", "rb") as f:
+                data = pickle.load(f)
+                v.username = data["username"]
+                v.password = data["password"]
+                v.fullscreen = data["fullscreen"]
+                v.pingFreq = data["pingFreq"]
+                v.debug = data["debug"]
+    except:
+        saveMetadata()
         
     
 def login(username, password):

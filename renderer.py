@@ -3,6 +3,7 @@ import pygame as py
 import traceback
 
 changeCallers = []
+debuger = None
 
 def change(rect):
     """Adds a rect to the changes list.
@@ -19,10 +20,29 @@ def change(rect):
 def getChangeCaller(index):
     print(changeCallers[index])
     
+def updateDisplay():
+    from guiItems import debug
+    global debuger
+    debuger = debug()
+    change(py.Rect(0, 0, 1280, 720))
+    flags = 0
+    size = (640, 360)
+    if v.fullscreen:
+        flags = flags|py.FULLSCREEN
+        size = (1280, 720)
+    """if v.hwsurface:
+        flags = flags|py.HWSURFACE
+    if v.doublebuf:
+        flags = flags|py.DOUBLEBUF"""
+    v.display = py.display.set_mode(size, flags)
+    v.windowWidth, v.windowHeight = size
+
 def refresh():
     """Updates the display"""
     #oldChanges = list(v.oldChanges)
     #v.oldChanges = [r.copy() for r in v.changes]
+    if v.debug:
+        debuger.update()
  
     for event in v.events:
         if event.type == py.KEYDOWN:
@@ -33,7 +53,7 @@ def refresh():
                     v.windowHeight = 720
                     v.windowWidth = 1280
                 else:
-                    v.display = py.display.set_mode((640, 360), py.HWSURFACE|py.DOUBLEBUF)
+                    v.display = py.display.set_mode((640, 360))
                     v.windowHeight = 360
                     v.windowWidth = 640
                 change(py.Rect(0, 0, 1280, 720))

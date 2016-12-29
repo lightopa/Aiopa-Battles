@@ -377,12 +377,9 @@ class StarBackground():
         self.stars = py.sprite.Group()
         for i in range(stars):
             self.stars.add(self._Star(self, (random.randint(0, 1280), random.randint(0, 720)), random.randint(12, 32), random.randint(-90, 90), random.uniform(0, 4) * speedmod, random.randint(1, 4), direction))
-        
-        v.screen.blit(self.background, (0, 0))
-    
     
     def update(self):
-        #v.screen.blit(self.background, (0, 0))
+        v.screen.blit(self.background, (0, 0))
         self.stars.update()
     
     class _Star(py.sprite.Sprite):
@@ -402,13 +399,13 @@ class StarBackground():
             self.oldrect = self.rect
         
         def draw(self):
-            v.screen.blit(self.master.background, (0, 0), self.oldrect)
+            #v.screen.blit(self.master.background, self.oldrect, self.oldrect)
             change(v.screen.blit(self.image, self.rect))
         
         def update(self):
             self.oldrect = self.rect.copy()
             change(self.oldrect)
-            self.change += self.speed * (-1 + (2 * (self.direction % 2 == 0))) # If odd * by -1
+            self.change += self.speed if (self.direction == 0 or self.direction == 3) else self.speed * -1
             if not self.direction % 2:
                 self.rect.y = self.starty + self.change
                 if self.rect.y > 720 + self.rect.height and self.direction == 0:
@@ -453,6 +450,225 @@ class LoadingCircle(py.sprite.Sprite):
         self.router = rot_center(self.outer, -self.rotation)
         self.draw()
         
+class Option(py.sprite.Sprite):
+    
+    def __init__(self, pos, text, choices, fontsize, ID, type="radio", selected=None, disabled=False):
+        super().__init__()
+        self.pos = pos
+        self.fontSize = fontsize
+        self.font = py.font.Font("assets/fonts/Galdeano.ttf", self.fontSize)
+        self.rend = self.font.render(text, 1, (200, 200, 200))
+        self.choices = choices
+        self.type = type
+        self.selected = selected
+        self.ID = ID
+        self.disabled = disabled
+        
+        if self.type == "radio":
+            lengths = self.rend.get_rect().width
+            font = py.font.Font("assets/fonts/Galdeano.ttf", self.fontSize)
+            self.choiceButtons = py.sprite.Group()
+            for item in choices:
+                self.choiceButtons.add(self._button(self.pos[0] + lengths, item, self))
+                lengths += font.size(str(item))[0] + 20
+        if self.type == "switch":
+            self.font = py.font.Font("assets/fonts/Galdeano.ttf", self.fontSize - 10)
+            self.rend1 = self.font.render(self.choices[0], 1, (0, 0, 0))
+            self.rend2 = self.font.render(self.choices[1], 1, (0, 0, 0))
+            self.srect = py.Rect(self.pos[0] + self.rend.get_rect().width + 10, self.pos[1], self.rend1.get_rect().width + 10 + self.rend1.get_rect().width, self.rend1.get_rect().height + 10)
+            self.srect1 = py.Rect(self.pos[0] + self.rend.get_rect().width + 10, self.pos[1], self.rend1.get_rect().width + 3, self.rend1.get_rect().height + 10)
+            self.srect2 = py.Rect(self.pos[0] + self.rend.get_rect().width + 10 + self.srect1.width + 2, self.pos[1], self.rend2.get_rect().width + 3, self.rend1.get_rect().height + 10)
+        if self.type == "dropdown":
+            self.dropped = False
+            self.dfont = py.font.Font("assets/fonts/Galdeano.ttf", self.fontSize - 20)
+            self.drect = py.Rect(self.pos[0] + self.rend.get_rect().width + 10, self.pos[1] + 12,  self.dfont.size(max(self.choices, key=len))[0], self.dfont.size("W")[1])
+            self.choiceDrops = py.sprite.Group()
+            heights = self.drect.height
+            for item in self.choices:
+                self.choiceDrops.add(self._drop(self.drect.x, self.drect.y + heights, self.drect.width, item, self))
+                heights += self.drect.height
+    
+    def update(self):
+        change(v.screen.blit(self.rend, self.pos))
+        if self.type == "radio":
+            self.choiceButtons.update()
+        if self.type == "switch":
+            py.draw.rect(v.screen, (0, 0, 0), self.srect)
+            
+            if self.selected == self.choices[0]:
+                py.draw.rect(v.screen, (50, 200, 200), self.srect1)
+            else:
+                py.draw.rect(v.screen, (220, 200, 200), self.srect1)
+            if self.srect1.collidepoint(v.mouse_pos):
+                py.draw.rect(v.screen, (255, 255, 0), self.srect1, 2)
+                if py.mouse.get_pressed()[0]:
+                    self.selected = self.choices[0]
+            else:
+                change(py.draw.rect(v.screen, (0, 0, 0), self.srect1, 2))
+            change(v.screen.blit(self.rend1, (self.srect1[0] + 3, self.srect1[1] + 3)))
+            
+            if self.selected == self.choices[1]:
+                py.draw.rect(v.screen, (50, 200, 200), self.srect2)
+            else:
+                py.draw.rect(v.screen, (220, 200, 200), self.srect2)
+            if self.srect2.collidepoint(v.mouse_pos):
+                py.draw.rect(v.screen, (255, 255, 0), self.srect2, 2)
+                if py.mouse.get_pressed()[0]:
+                    self.selected = self.choices[1]
+            else:
+                change(py.draw.rect(v.screen, (0, 0, 0), self.srect2, 2))
+            change(v.screen.blit(self.rend2, (self.srect2[0] + 3, self.srect2[1] + 3)))
+        
+        if self.type == "dropdown":
+            change(self.drect)
+            self.choiceDrops.update()
+            
+            if self.drect.collidepoint(v.mouse_pos) and not self.disabled:
+                py.draw.rect(v.screen, (255, 255, 0), self.drect)
+                for event in v.events:
+                    if event.type == py.MOUSEBUTTONDOWN and py.mouse.get_pressed()[0]:
+                        self.dropped = not self.dropped
+            else:
+                py.draw.rect(v.screen, (50, 200, 200), self.drect)
+            
+            py.draw.rect(v.screen, (0, 0, 0), self.drect, 2)
+            rend = self.dfont.render(self.selected, 1, (0, 0, 0))
+            v.screen.blit(rend, (self.drect.centerx - rend.get_rect().width/2, self.drect.centery - rend.get_rect().height/2))
+            
+            if self.disabled:
+                s = py.Surface(self.drect.size, py.SRCALPHA)
+                s.fill((50, 50, 50, 200))
+                change(v.screen.blit(s, self.drect))
+    
+    class _drop(py.sprite.Sprite):
+        
+        def __init__(self, posx, posy, width, text, master):
+            super().__init__()
+            self.posx = posx
+            self.posy = posy
+            self.master = master
+            self.text = text
+            font = py.font.Font("assets/fonts/Galdeano.ttf", self.master.fontSize - 20)
+            self.rend = font.render(self.text, 1, (0, 0, 0))
+            self.rect = py.Rect(posx, posy, width, self.rend.get_rect().height)
+        
+        def update(self):
+            change(self.rect)
+            if self.master.dropped:
+                if self.master.selected == self.text:
+                    py.draw.rect(v.screen, (50, 200, 200), self.rect)
+                else:
+                    py.draw.rect(v.screen, (220, 200, 200), self.rect)
+                
+                if self.rect.collidepoint(v.mouse_pos):
+                    py.draw.rect(v.screen, (255, 255, 0), self.rect, 2)
+                    if py.mouse.get_pressed()[0]:
+                        self.master.selected = self.text
+                        self.master.dropped = False
+                else:
+                    py.draw.rect(v.screen, (0, 0, 0), self.rect, 2)
+                v.screen.blit(self.rend, (self.rect.centerx - self.rend.get_rect().width/2, self.rect.centery - self.rend.get_rect().height/2))
+                
+    
+    
+    class _button(py.sprite.Sprite):
+        
+        def __init__(self, posx, text, master):
+            super().__init__()
+            self.posx = posx
+            self.text = text
+            self.master = master
+            self.posy = self.master.pos[1]
+    
+        def update(self):
+            font = py.font.Font("assets/fonts/Galdeano.ttf", self.master.fontSize)
+            rend = font.render(str(self.text), 1, (255, 255, 255))
+            rect = rend.get_rect()
+            rect.topleft = (self.posx, self.posy)
+            rect.height += 2
+            rect.width += 2
+            
+            if rect.collidepoint(v.mouse_pos):
+                py.draw.rect(v.screen, (255, 200, 0), rect)
+                for event in v.events:
+                    if event.type == py.MOUSEBUTTONDOWN:
+                        self.master.selected = self
+                        self.master.outText = self.text
+            else:
+                py.draw.rect(v.screen, (255, 178, 102), rect)
+            
+            if self.master.selected == self:
+                py.draw.rect(v.screen, (0, 100, 200), rect, 2)
+            else:
+                py.draw.rect(v.screen, (153, 76, 0), rect, 2)
+            
+            rect.x += 2
+            rect.y += 2
+            change(v.screen.blit(rend, rect))
+
+
+
+class InfoBubble(py.sprite.Sprite):
+    
+    def __init__(self, pos, text, direction, fontsize, colour, limit, target="i"):
+        super().__init__()
+        self.target = target
+        self.pos = list(pos)
+        self.direction = direction
+        if target == "i":
+            self.image = py.image.load("assets/images/info.png").convert_alpha()
+            self.image = py.transform.smoothscale(self.image, (60, 60))
+            
+            self.rect = py.Rect(self.pos[0] - 30, self.pos[1] - 30, 60, 60)
+            if self.direction == "down":
+                self.pos[1] += 36
+            if self.direction == "up":
+                self.pos[1] -= 36
+            if self.direction == "left":
+                self.pos[0] -= 36
+            if self.direction == "right":
+                self.pos[0] += 36
+        
+        self.font = py.font.Font("assets/fonts/Galdeano.ttf", fontsize)
+        self.renders = []
+        
+        
+        line = ""
+        for word in text.split(" "):
+            if len(line + " " + str(word)) <= limit:
+                line = line + " " + word
+            else:
+                self.renders.append(self.font.render(line, 1, colour))
+                line = ""
+                line = line + " " + word
+        if not line == "":
+            self.renders.append(self.font.render(line, 1, colour))
+    
+    def update(self):
+        hovered = False
+        if self.target == "i":
+            change(v.screen.blit(self.image, self.rect))
+            if self.rect.collidepoint(v.mouse_pos):
+                hovered = True
+        else:
+            if self.target.hovered:
+                hovered = True
+        if hovered:
+            if self.direction == "down":
+                ymod = 0
+                for line in self.renders:
+                    linerect = line.get_rect()
+                    change(v.screen.blit(line, (self.pos[0] - linerect.width/2, self.pos[1] + ymod)))
+                    ymod += linerect.height + 5
+            if self.direction == "right":
+                ymod = 0 - ((self.renders[0].get_rect().height + 5) * len(self.renders)) / 2
+                for line in self.renders:
+                    linerect = line.get_rect()
+                    change(v.screen.blit(line, (self.pos[0], self.pos[1] + ymod)))
+                    ymod += linerect.height + 5
+
+
+
 def rot_center(image, angle):
     """Rotate an image while keeping its center and size.
     
