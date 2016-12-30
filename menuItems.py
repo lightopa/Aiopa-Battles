@@ -500,6 +500,22 @@ class LoadingCircle(py.sprite.Sprite):
 class Option(py.sprite.Sprite):
     
     def __init__(self, pos, text, choices, fontsize, ID, type="radio", selected=None, disabled=False):
+        """A super class containing several different types of option changing object.
+        
+        Args:
+            pos x,y: The position of the object.
+            text (str): The text label for the option.
+            choices (list[of strings]): The selectable options.
+            fontsize (int): The size of the font.
+            ID (str): A unique identifier for the option object.
+            type (str): The type of option object -
+                        radio > Multiple radio buttons in a line
+                        switch > Two radio buttons side by side
+                        dropdown > A toggleable dropdown menu
+            selected (str): The currently selected option (in choices)
+            disabled (bool): If the option is editable
+        """
+        
         super().__init__()
         self.pos = pos
         self.fontSize = fontsize
@@ -658,6 +674,18 @@ class Option(py.sprite.Sprite):
 class InfoBubble(py.sprite.Sprite):
     
     def __init__(self, pos, text, direction, fontsize, colour, limit, target="i"):
+        """A hoverable icon that displays text.
+        
+        Args:
+            pos x,y: The position of the icon.
+            text (str): The text to display.
+            direction (str): Where the text is in relation to the icon (right|down)
+            fontsize (int): The size of the font.
+            colour r,g,b: The colour of the font.
+            limit (int): The max amount of characters per line.
+            target (str): The object that should be hovered to display the text -
+                            Setting this to 'i' will simply display the info icon
+        """
         super().__init__()
         self.target = target
         self.pos = list(pos)

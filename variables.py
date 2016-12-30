@@ -13,15 +13,15 @@ changes = [] # All rects that have been updated this tick
 oldChanges = [] # All rects that were updated last tick
 networkEvents = [] # Changes to push to the server
 networkChanges = [] # Changes received from the server
-ping = [0] # List of gamelopp response times
+ping = [0] # List of gameloop response times
 cardUnid = 0 # The last used card unid
 turnLength = 40 # The length of the turn (seconds)
 timeLeft = turnLength # The amount of time left in the current turn
-debug = True # Debug mode
 test = False # Test mode
 
 fullscreen = False # If the game is fullscreen
-pingFreq = 0.5
+pingFreq = 0.5 # The time in seconds between each server ping
+debug = True # Debug mode
 #hwsurface = True
 #doublebuf = True
 
