@@ -9,6 +9,7 @@ from renderer import *
 import tween
 import random
 from functools import wraps
+from webbrowser import open as wbopen
 
 def boot():
     """Sets up the game and starts the mainMenu state"""
@@ -36,6 +37,9 @@ def mainMenu():
     buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "options", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(190, 80)))
+    buttons.add(menuItems.ImageButton("assets/images/github.png", (1220, 660), (80, 80), (90, 60, 180), "github", centred=True))
+    
+    
     #background = menuItems.Animation((0, -32, 1339, 752), "assets/images/stars.png", 18, 1, 50)
     #background = menuItems.ScrollingAnimation("assets/images/menu/stars.png", 2)
     background = menuItems.StarBackground()
@@ -77,6 +81,8 @@ def mainMenu():
                     return
                 if button.ID == "options":
                     out = "options"
+                if button.ID == "github":
+                    wbopen("https://github.com/lightopa/Aiopa-Battles")
         
         black.fadeOut()
         title.update()

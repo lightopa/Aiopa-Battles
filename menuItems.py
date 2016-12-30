@@ -76,6 +76,53 @@ class Button(py.sprite.Sprite):
                         return True
         return False
     
+    
+class ImageButton(py.sprite.Sprite):
+
+    def __init__(self, image, pos, size, hovercolour, ID, centred=False):
+        """A simple button.
+        
+        Args:
+            image (str): The path to the image.
+            pos x,y (int, int): The position of the button.
+            size w,h (int, int): The dimensions of the button
+            hovercolour r,g,b (int, int, int): A tint to apply when hovered
+            ID (str/int): A unique id to identify the button.
+            centred (bool): Whether or not the button is centred - default=False
+        """
+        super().__init__()
+        self.ID = ID
+        self.hovered = False
+        self.hcolour = hovercolour
+        self.centred = centred
+        self.image = py.image.load(image).convert_alpha()
+        self.image = py.transform.scale(self.image, size)
+        if self.centred:
+            self.rect = self.image.get_rect()
+            self.rect.center = pos
+        else:
+            self.rect = py.rect(pos, size)
+        self.update()
+    
+    def draw(self):
+        change(v.screen.blit(self.rimage, self.rect))
+    
+    def update(self):
+        self.hovered = self.rect.collidepoint(v.mouse_pos)
+        if self.hovered:
+            self.rimage = self.image.copy()
+            self.rimage.fill(self.hcolour, special_flags=py.BLEND_MULT)
+        else:
+            self.rimage = self.image
+        self.draw()
+
+    def pressed(self):
+        for event in v.events:
+            if self.hovered:
+                if event.type == py.MOUSEBUTTONDOWN:
+                    return True
+        return False
+    
 class Text(py.sprite.Sprite):
     
     def __init__(self, text, pos, colour, font, size, centred = False):
