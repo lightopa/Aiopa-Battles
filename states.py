@@ -22,8 +22,7 @@ def boot():
     py.display.set_icon(icon)
     v.clock = py.time.Clock()
     py.key.set_repeat(200, 70)
-    #logo()
-    v.state = login#mainMenu
+    v.state = logo if not v.debug else login
     while True:
         change(py.Rect(0, 0, 1280, 720))
         v.state()
