@@ -38,9 +38,6 @@ def mainMenu():
     buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.ImageButton("assets/images/github.png", (1220, 660), (80, 80), (90, 60, 180), "github", centred=True))
     
-    
-    #background = menuItems.Animation((0, -32, 1339, 752), "assets/images/stars.png", 18, 1, 50)
-    #background = menuItems.ScrollingAnimation("assets/images/menu/stars.png", 2)
     background = menuItems.StarBackground()
     black = guiItems.blackFade()
     black.alpha = 255
@@ -55,7 +52,6 @@ def mainMenu():
     out = None
     
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
@@ -89,7 +85,7 @@ def mainMenu():
             black2.fadeIn()
             if black2.alpha >= 255:
                 if out == "play":
-                    v.state = queue#setup
+                    v.state = queue
                     return
                 if out == "options":
                     v.state = options
@@ -120,7 +116,6 @@ def options():
     
     while True:
         v.clock.tick(30)
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         
@@ -171,7 +166,6 @@ def setup():
     
     while True:
         v.clock.tick(30)
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         
@@ -204,7 +198,6 @@ def queue():
     black = guiItems.blackFade()
     black.alpha = 255
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(30)
@@ -288,7 +281,6 @@ def game():
     winEffect = None
         
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         if v.debug and py.key.get_pressed()[py.K_SPACE]:
@@ -447,7 +439,6 @@ def finish():
         texts.add(menuItems.Text("The server misplaced the current game data", (640, 360), (255, 255, 255), "assets/fonts/Galdeano.ttf", 60, True))
         
     while True:
-        #py.event.pump()
         v.screen.fill((50, 100, 200))
         v.events = []
         v.events = py.event.get()
@@ -488,7 +479,6 @@ def crash(crash):
         posy += 32
             
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.screen.fill((50, 0, 255))
@@ -541,7 +531,6 @@ def login():
     
     wait = 0
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
@@ -622,7 +611,6 @@ def register():
     loadingText = menuItems.Text("Registering Account...", (640, 480), (255, 255, 255), "assets/fonts/Galdeano.ttf", 40, centred=True)
     wait = 0
     while True:
-        #py.event.pump()
         v.events = []
         v.events = py.event.get()
         v.clock.tick(60)
@@ -706,7 +694,6 @@ def logo():
     
     while True:
         v.clock.tick(60)
-        #py.event.pump()
         v.screen.fill((0, 0, 0))
         change(py.Rect(0, 0, 1280, 720))
 
