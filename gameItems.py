@@ -104,12 +104,17 @@ class tile(py.sprite.Sprite):
                 self.card = card
         
         if v.dragCard != None:
+            #If card is being dragged
             if v.dragCard.type == "minion":
+                #If it is a minion card
                 if v.dragCard.tile == None:
+                    #If the card is in the player's hand
                     if self.pos[0] < 2:
                         v.availableTiles.add(self)
                 else:
+                    #If the card is on the board
                     if self.castle == None:
+                        #If this tile isn't a castle tile
                         path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[]))
                         a = False
                         for card in v.gameCards:
@@ -117,11 +122,15 @@ class tile(py.sprite.Sprite):
                                 if card.player == v.opUnid:
                                     a = True
                                     path = pathfind.pathfind(v.dragCard.tile.pos, self.pos, pathfind.get_grid(skip=[self]))
-                        if path != False and len(path) - 1 <= v.dragCard.moves:
+                        if path != False and len(path) - 1 <= v.dragCard.moves and v.dragCard.card.speed > 0:
                             v.availableTiles.add(self)
                             if a:
                                 self.attack = True
+                        if v.dragCard.moves > 0 and v.dragCard.range > 0 and a and abs(v.dragCard.tile.pos[0] - self.pos[0]) <= v.dragCard.range and abs(v.dragCard.tile.pos[1] - self.pos[1]) <= v.dragCard.range:
+                            v.availableTiles.add(self)
+                            self.attack = True
                     else:
+                        #If this tile is a castle tile
                         if self.castle == False:
                             paths = [pathfind.pathfind((v.dragCard.tile.pos[0] + 1, v.dragCard.tile.pos[1]), (self.pos[0] + 1, 0), pathfind.get_grid(skip=[], castle=True)), 
                                      pathfind.pathfind((v.dragCard.tile.pos[0] + 1, v.dragCard.tile.pos[1]), (self.pos[0] + 1, 1), pathfind.get_grid(skip=[], castle=True)), 
@@ -135,7 +144,7 @@ class tile(py.sprite.Sprite):
                             else:
                                 path = False
                                     
-                            if path != False and len(path) - 1 <= v.dragCard.moves:
+                            if path != False and len(path) - 1 <= v.dragCard.moves and v.dragCard.card.speed > 0:
                                 v.availableTiles.add(self)
                                 self.attack = True
                         
@@ -188,6 +197,9 @@ class card:
             self.health = attributes["health"]
             self.speed = attributes["speed"]
         if self.type == "spell":
+            pass
+        self.effects = []
+        if "effects" in attributes.keys():
             self.effects = attributes["effects"]
         self.description = attributes["description"]
         self.cost = attributes["cost"]
@@ -453,6 +465,11 @@ class minionCard(gameCard):
         self.schRender = False
         self.schRenderSize = None
         
+        self.range = 0
+        for i in self.card.effects:
+            if i.split(" ")[0] == "ranged":
+                self.range = int(i.split(" ")[1])
+        
         self.update()
         self.attackWon = False
     
@@ -480,6 +497,8 @@ class minionCard(gameCard):
     
     def next_turn(self):
         self.moves = self.card.speed + self.changes["speed"]
+        if self.moves == 0:
+            self.moves = 1
     
     def move(self, path=None):
         if path != None:
@@ -596,29 +615,31 @@ class minionCard(gameCard):
                             if v.hoverTile != self.tile:
                                 # If the hovered tile is attackable
                                 if v.hoverTile.attack:
-                                    path = pathfind.pathfind((self.tile.pos[0] + 1, self.tile.pos[1]), (v.hoverTile.pos[0] + 1, v.hoverTile.pos[1]), pathfind.get_grid(skip=[v.hoverTile], castle=True))
-                                    path = [(p[0]-1, p[1]) for p in path]
-                                    self.movePath = path[:-1]
-                                    if len(path) < 2:
-                                        print("Bad path length", path, self.movePath)
-                                    pos = path[-2]
-                                    if pos[0] > 3:
-                                        pos = path[-3]
+                                    if self.range == 0:
+                                        path = pathfind.pathfind((self.tile.pos[0] + 1, self.tile.pos[1]), (v.hoverTile.pos[0] + 1, v.hoverTile.pos[1]), pathfind.get_grid(skip=[v.hoverTile], castle=True))
+                                        path = [(p[0]-1, p[1]) for p in path]
+                                        self.movePath = path[:-1]
+                                        while self.movePath[-1][0] > 3 or self.movePath[-1][0] < -1:
+                                            self.movePath = self.movePath[:-1]
+                                        if len(path) < 2:
+                                            print("Bad path length", path, self.movePath)
+                                        pos = self.movePath[-1]
+                                        for tile in v.tiles:
+                                            if tile.pos == pos:
+                                                self.tile = tile
+                                        v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
                                     self.moves = 0
-                                    for tile in v.tiles:
-                                        if tile.pos == pos:
-                                            self.tile = tile
-                                    v.networkEvents.append({"type": "move", "unid": self.unid, "position": pos})
                                     # If the target is another minion
                                     if v.hoverTile.castle == None:
                                         target = v.hoverTile.card
                                         v.networkEvents.append({"type": "damage", "unid": self.unid, "target": target.unid})
-                                        self.changes["health"] -= target.card.attack + target.changes["attack"]
+                                        if self.range == 0:
+                                            self.changes["health"] -= target.card.attack + target.changes["attack"]
                                         target.changes["health"] -= self.card.attack + self.changes["attack"]
                                         target.updateDelay += 20
                                         self.updateDelay += 20
                                         self.attackTarget = target
-                                        if target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
+                                        if range == 0 and target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
                                             v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
                                             self.attackWon = True
                                     # If the target is a castle
@@ -689,7 +710,7 @@ class minionCard(gameCard):
                     drect = dmg.get_rect()
                     drect.center = v.hoverTile.rect.center
                     self.preCard.append((dmg, drect))
-                    if v.hoverTile.castle == None:
+                    if v.hoverTile.castle == None and self.range == 0:
                         target = v.hoverTile.card
                         drect = py.Rect(0, 0, 100, 100)
                         drect.center = self.tile.rect.center
