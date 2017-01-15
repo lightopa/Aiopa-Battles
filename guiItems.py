@@ -196,6 +196,8 @@ class timer(py.sprite.Sprite):
         while v.gameTurn == None:
             py.time.delay(10)
         v.timeLeft = v.turnLength - (time.time() - v.gameTurn["time"])
+        if v.online == False:
+            v.timeLeft = v.turnLength
         
         if self.oldTurn != v.gameTurn["player"] and v.gameTurn != None:
             if v.gameTurn["player"] != v.unid:
@@ -210,8 +212,6 @@ class timer(py.sprite.Sprite):
             self.mask.set_alpha(200 - v.timeLeft/v.turnLength * 200)
         if v.timeLeft <= 0:
             v.timeLeft = 0
-        if v.test:
-            v.timeLeft = 10
         self.draw()
 
 class PlayerTurn(py.sprite.Sprite):

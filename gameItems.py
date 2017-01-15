@@ -11,7 +11,7 @@ class SpriteSheet():
         Args:
             file_name (str/pygame.Surface): The image to split.
             rows (int): The number of rows the sprite sheet has.
-            columns (int(: The number of columns the sprite sheet has.
+            columns (int): The number of columns the sprite sheet has.
         """
 
         self.rows = rows

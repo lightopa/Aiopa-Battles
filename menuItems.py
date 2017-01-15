@@ -742,7 +742,90 @@ class InfoBubble(py.sprite.Sprite):
                     change(v.screen.blit(line, (self.pos[0], self.pos[1] + ymod)))
                     ymod += linerect.height + 5
 
+class MapFlag(py.sprite.Sprite):
+    
+    def __init__(self, pos, num):
+        super().__init__()
+        self.num = num
+        if v.levels[self.num]["friendly"] == True:
+            self.image = py.image.load("assets/images/map/friendly_flag.png")
+        else:
+            self.image = py.image.load("assets/images/map/enemy_flag.png")
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+        
+        self.hoverImage = py.image.load("assets/images/map/hover_flag.png")
+        self.hoverRect = self.hoverImage.get_rect()
+        self.hoverRect.center = self.rect.center
+        self.hovered = True
+    
+    
+    def draw(self):
+        if self.hovered:
+            change(v.screen.blit(self.hoverImage, self.hoverRect))
+        change(v.screen.blit(self.image, self.rect))
+    
+    def update(self):
+        if self.rect.collidepoint(v.mouse_pos):
+            self.hovered = True
+            for event in v.events:
+                if event.type == py.MOUSEBUTTONDOWN:
+                    v.selectedLevel = self.num
+                    v.levelDescription = LevelOverview(self.num)
+        else:
+            self.hovered = False
+        self.draw()
 
+class LevelOverview(py.sprite.Sprite):
+    
+    def __init__(self, num):
+        super().__init__()
+        self.name = v.levels[num]["name"]
+        self.description = v.levels[num]["description"]
+        self.rect = py.Rect(0, 0, 800, 500)
+        self.rect.center = (640, 970)
+        
+        self.buttons = py.sprite.Group()
+        self.buttons.add(Button("To Battle", (820, 520), 50, (150, 150, 150), (180, 180, 180), "assets/fonts/Galdeano.ttf", "play"))
+        self._render()
+    
+    def _render(self):
+        self.image = py.Surface((800, 500), flags=py.SRCALPHA)
+        back = py.image.load("assets/images/map/level.png").convert_alpha()
+        self.image.blit(back, (0, 0))
+        
+        font = py.font.Font("assets/fonts/MeriendaOne.ttf", 80)
+        rend = font.render(self.name, 1, (200, 200, 200))
+        self.image.blit(rend, (400 - rend.get_rect().width/2, 40))
+        
+        font = py.font.Font("assets/fonts/Merienda.ttf", 40)
+        line = ""
+        ymod = 0
+        for word in self.description.split(" "):
+            if font.size(line + " " + str(word))[0] <= 700:
+                line = line + " " + word
+            else:
+                rend = font.render(line, 1, (200, 200, 200))
+                self.image.blit(rend, (400 - rend.get_rect().width/2, 150 + ymod))
+                ymod += rend.get_rect().height + 5
+                line = ""
+                line = line + " " + word
+        if not line == "":
+            rend = font.render(line, 1, (200, 200, 200))
+            self.image.blit(rend, (400 - rend.get_rect().width/2, 150 + ymod))
+    
+    def draw(self):
+        change(v.screen.blit(self.image, self.rect))
+    
+    def update(self):
+        if self.rect.centery > 360:
+            self.rect.centery -= 20
+        for button in self.buttons:
+            if button.pressed():
+                v.leaveMap = True
+        self.draw()
+        if self.rect.centery <= 360:
+            self.buttons.update()
 
 def rot_center(image, angle):
     """Rotate an image while keeping its center and size.

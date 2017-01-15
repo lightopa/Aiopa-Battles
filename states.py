@@ -33,7 +33,7 @@ def mainMenu():
     buttons = py.sprite.Group()
     buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Test Run", (1000, 400), 40, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "test", centred=True, bsize=(150, 40)))
-    buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(400, 100)))
+    buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "camp", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "options", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.ImageButton("assets/images/github.png", (1220, 660), (80, 80), (90, 60, 180), "github", centred=True))
@@ -70,8 +70,11 @@ def mainMenu():
             if button.pressed():
                 if button.ID == "play":
                     out = "play"
+                if button.ID == "camp":
+                    out = "camp"
                 if button.ID == "test":
                     v.test = True
+                    v.online = False
                     v.state = game
                     return
                 if button.ID == "options":
@@ -86,6 +89,9 @@ def mainMenu():
             if black2.alpha >= 255:
                 if out == "play":
                     v.state = queue
+                    return
+                if out == "camp":
+                    v.state = campaign
                     return
                 if out == "options":
                     v.state = options
@@ -213,19 +219,71 @@ def queue():
                 v.networkHalt = True
                 sys.exit()
         if v.game != None:
-            v.serverConnected = True
+            v.online = True
             v.state = game
             return
         loading.update()
         black.fadeOut()
         refresh()
+
+def campaign():
+    background = py.image.load("assets/images/map/map_base.png").convert_alpha()
+    
+    v.mapFlags = py.sprite.Group()
+    for num in range(1):
+        v.mapFlags.add(menuItems.MapFlag((250, 500), num))
         
+    black1 = guiItems.blackFade()
+    black1.alpha = 255
+    
+    black2 = guiItems.blackFade(limit=150, gradient=True)
+    
+    v.leaveMap = False
+    
+    while True:
+        v.events = []
+        v.events = py.event.get()
+        v.clock.tick(60)
+        
+        v.screen.fill((100, 100, 100))
+        v.screen.blit(background, (0, 0))
+        v.mapFlags.update()
+        
+        if v.levelDescription != None:
+            black2.fadeIn()
+            v.levelDescription.update()
+        else:
+            black2.fadeOut()
+        
+        if v.leaveMap == False:
+            black1.fadeOut()
+        else:
+            black1.fadeIn()
+            if black1.alpha >= 255:
+                v.state = aiSetup
+                return
+        refresh()
+
+def aiSetup():
+    v.online = False
+    v.opUnid = 0
+    v.opName = v.levels[v.selectedLevel]["opName"]
+    if v.levels[v.selectedLevel]["pStart"]:
+        v.gameStarter = v.unid
+    else:
+        v.gameStarter = v.opUnid
+    
+    v.gameTurn = {"player": v.gameStarter, "time": 0}
+    
+    v.opDeck = 
+    v.state = game
+
 def game():
     """The game state"""
-    if not v.test:
+    if v.online:
         network.getCards()
         network.gameJoin()
-    else:
+    elif v.test:
         v.gameStarter = v.unid
         v.gameTurn = {"player": v.unid, "time": 0}
         v.opUnid = 1
@@ -275,7 +333,7 @@ def game():
     v.pturn = guiItems.PlayerTurn()
     
     v.effects = py.sprite.Group()
-    if not v.test:
+    if v.online:
         network.gameLoop()
         
     winEffect = None
@@ -420,6 +478,9 @@ def game():
                 
             if v.pauseType == "win":
                 winScreen.update()
+                
+        if v.offline and not v.test:
+            network.ai()
         
         refresh()
 
