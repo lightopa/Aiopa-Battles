@@ -38,9 +38,12 @@ class SpriteSheet():
 
 def add_card(card, order=0, **kwargs):
     if card.type == "minion":
-        v.gameCards.add(minionCard(card, order, **kwargs))
+        out = minionCard(card, order, **kwargs)
+        v.gameCards.add(out)
     if card.type == "spell":
-        v.gameCards.add(spellCard(card, order, **kwargs))
+        out = spellCard(card, order, **kwargs)
+        v.gameCards.add(out)
+    return out
     
 class tile(py.sprite.Sprite):
     def __init__(self, pos, style, castle=None):
@@ -781,7 +784,7 @@ class blankCard(py.sprite.Sprite):
             if self.aniCycle >= 40 and self.aniCycle <= 60:
                 self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
             if self.aniCycle >= 60:
-                add_card(v.deck[0], len([c for c in v.gameCards if c.tile == None]), intro=True)
+                v.hand.append(add_card(v.deck.pop(0), len([c for c in v.gameCards if c.tile == None]), intro=True))
                 self.kill()
             self.aniCycle += 2
         self.draw()
