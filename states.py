@@ -442,7 +442,7 @@ def game():
             for card in v.gameCards:
                 if card.type == "minion" and card.attackTarget != None:
                     card.draw()
-                if card.intro == True:
+                if card.intro == True or (card.card.type == "minion" and card.opintro == True):
                     card.draw()
             
             v.pturn.update()

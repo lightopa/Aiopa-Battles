@@ -318,6 +318,9 @@ class gameCard(py.sprite.Sprite):
             for item in self.postCard:
                 change(v.screen.blit(item[0], item[1]))
         
+        if self.card.type == "minion" and self.opintro:
+            self.blankCard.draw()
+        
     
     def _hand_update(self):
         if not self.intro:
@@ -801,7 +804,8 @@ class blankCard(py.sprite.Sprite):
             self.aniCycle = 1
     
     def draw(self):
-        change(v.screen.blit(self.rimage, self.rect))
+        v.screen.blit(self.rimage, self.rect)
+        change(self.rect.copy().inflate(20, 20))
     
     def update(self):
         if self.aniCycle >= 1:
