@@ -105,7 +105,7 @@ def ai_priorities(board):
     rank = (20 / v.pHealth) * v.aiMod["p_castleMod"] + v.aiMod["playerCastleAdd"]
     targets.append({"card": "pCastle", "rank": rank, "action": "attack"})
     
-    print([t for t in targets if t["action"] != "help"])
+    #print([t for t in targets if t["action"] != "help"])
     return targets
 
 def ai_action(board, c, targets):
@@ -168,8 +168,9 @@ def ai_action(board, c, targets):
                                     event.append({"type": "move", "unid": c.unid, "position": ai_invertCoords(path[-1])})
                             bestAction = (event, curRank)
     if bestAction[0] != None:
+        bestAction[0][-1]["movable"] = False
         v.networkChanges.extend(bestAction[0])
-        v.networkChanges.append({"type": "movable", "unid": c.unid, "movable": False})
+        #v.networkChanges.append({"type": "movable", "unid": c.unid, "movable": False})
         for e in bestAction[0]:
             if e["type"] == "move":
                 board[ai_invertCoords(e["position"])[1]][ai_invertCoords(e["position"])[0]] = ""

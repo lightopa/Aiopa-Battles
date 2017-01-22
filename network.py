@@ -278,7 +278,7 @@ def changes():
                     c.tile = tile
             c.movePath = path
         
-        if event["type"] == "movable":
+        if event["type"] == "movable" or "movable" in event.keys():
             c = None
             for card in v.gameCards:
                 if card.unid == event["unid"]:

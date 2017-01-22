@@ -372,7 +372,7 @@ def game():
             v.state = finish
             return
         
-        if v.online or (changeCount % 60 == 0):
+        if v.online or (changeCount % 40 == 0):
             network.changes()
         changeCount += 1
         
