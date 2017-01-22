@@ -433,7 +433,7 @@ class spellCard(gameCard):
         self.draw()
 
 class minionCard(gameCard):
-    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(155, 220), intro=False):
+    def __init__(self, cardClass, order=0, tile=None, unid=None, player=None, changes={}, renSize=(155, 220), intro=False, opintro=False):
         """A minion card.
             Args:
             cardClass (card): The card data object for this minion
@@ -449,6 +449,12 @@ class minionCard(gameCard):
         self.schRender = True
         super().__init__(cardClass, order=order, unid=unid, changes=changes, renSize=renSize, intro=intro)
         self.tile = tile
+        
+        self.opintro = opintro
+        if self.opintro: 
+            self.introCycle = -60
+            self.blankCard = blankCard(opponent=True)
+            
         
         self.arrow = py.image.load("assets/images/arrow.png").convert_alpha()
         self.arrow = py.transform.scale(self.arrow, (100, 100))
@@ -497,6 +503,22 @@ class minionCard(gameCard):
             
             self._render_description()
             self.schRender = False
+    
+    def _opintro(self):
+        pos = (640, 200)
+        if self.introCycle > 0:
+            end = self.tile.rect.center
+            diff = (end[0] - pos[0], end[1] - pos[1])
+            diff = (diff[0]/40, diff[1]/40)
+            if self.introCycle >= 40:
+                self.opintro = False
+            pos = (pos[0] + diff[0] * self.introCycle, pos[1] + diff[1] * self.introCycle)
+            self.rect.center = pos
+            self.rimage = py.transform.scale(self.image, (int(self.rect.size[0] * self.introCycle/40), self.rect.size[1]))
+        else:
+            self.rimage = py.Surface((0, 0))
+            self.blankCard.update()
+        self.introCycle += 2
     
     def next_turn(self):
         self.moves = self.card.speed + self.changes["speed"]
@@ -727,6 +749,8 @@ class minionCard(gameCard):
                 self.rarrow = None
             if v.hoverTile == None:
                 self.rarrow = None
+        if self.opintro:
+            self._opintro()
         self.draw()
 class castle(py.sprite.Sprite):
     
@@ -754,7 +778,7 @@ class castle(py.sprite.Sprite):
         self.draw()
 
 class blankCard(py.sprite.Sprite):
-    def __init__(self, order):
+    def __init__(self, order=0, opponent=False):
         """A blank deck card.
         Args:
             order (int): What position the card is in the deck
@@ -762,30 +786,47 @@ class blankCard(py.sprite.Sprite):
         super().__init__()
         self.image = py.image.load("assets/images/cards/card_back.png").convert_alpha()
         self.image = py.transform.scale(self.image, (124, 176))
-        self.rot = random.randint(-45, 45)
-        self.rimage = py.transform.rotate(self.image, self.rot)
-        self.rect = self.image.get_rect()
-        self.rect.center = (180, 630)
-        self.order = order
-        self.aniCycle = 0
+        self.opponent = opponent
+        if self.opponent == False:
+            self.rot = random.randint(-45, 45)
+            self.rimage = py.transform.rotate(self.image, self.rot)
+            self.rect = self.image.get_rect()
+            self.rect.center = (180, 630)
+            self.order = order
+            self.aniCycle = 0
+        else:
+            self.rimage = self.image.copy()
+            self.rect = self.image.get_rect()
+            self.rect.center = (640, -100)
+            self.aniCycle = 1
     
     def draw(self):
         change(v.screen.blit(self.rimage, self.rect))
     
     def update(self):
         if self.aniCycle >= 1:
-            if self.aniCycle <= 40:
-                self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
-                diff = self.rot / 40
-                self.rimage = py.transform.rotate(self.rimage, self.rot - diff * self.aniCycle)
-            if self.aniCycle < 60:
-                self.rect.x += 8 * 2
-                self.rect.y -= 5 * 2
-            if self.aniCycle >= 40 and self.aniCycle <= 60:
-                self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
-            if self.aniCycle >= 60:
-                v.hand.append(add_card(v.deck.pop(0), len([c for c in v.gameCards if c.tile == None]), intro=True))
-                self.kill()
+            if self.opponent == False:
+                if self.aniCycle <= 40:
+                    self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
+                    diff = self.rot / 40
+                    self.rimage = py.transform.rotate(self.rimage, self.rot - diff * self.aniCycle)
+                if self.aniCycle < 60:
+                    self.rect.x += 8 * 2
+                    self.rect.y -= 5 * 2
+                if self.aniCycle >= 40 and self.aniCycle <= 60:
+                    self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
+                if self.aniCycle >= 60:
+                    v.hand.append(add_card(v.deck.pop(0), len([c for c in v.gameCards if c.tile == None]), intro=True))
+                    self.kill()
+            else:
+                if self.aniCycle <= 40:
+                    self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
+                if self.aniCycle < 60:
+                    self.rect.y += 5 * 2
+                if self.aniCycle >= 40 and self.aniCycle <= 60:
+                    self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
+                if self.aniCycle >= 60:
+                    self.kill()
             self.aniCycle += 2
         self.draw()
 

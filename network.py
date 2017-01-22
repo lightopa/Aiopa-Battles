@@ -261,7 +261,7 @@ def changes():
                 if tile.pos == pos:
                     target = tile
             card = v.cards[event["id"]]
-            gameItems.add_card(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140))
+            gameItems.add_card(card, tile=target, unid=cunid, player=v.opUnid, renSize=(100, 140), opintro=True)
         
         if event["type"] == "move":
             pos = event["position"]
