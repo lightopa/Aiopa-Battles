@@ -4,6 +4,7 @@ import menuItems
 import network
 import gameItems
 import guiItems
+import campaignAI
 import sys
 from renderer import *
 import tween
@@ -267,6 +268,7 @@ def campaign():
 def aiSetup():
     v.online = False
     v.opUnid = 0
+    v.unid = 1
     v.opName = v.levels[v.selectedLevel]["opName"]
     if v.levels[v.selectedLevel]["pStart"]:
         v.gameStarter = v.unid
@@ -275,7 +277,10 @@ def aiSetup():
     
     v.gameTurn = {"player": v.gameStarter, "time": 0}
     
-    v.opDeck = 
+    v.opDeck = list(v.cards.values())
+    v.opHand = v.opDeck[:3]
+    v.opDeck = v.opDeck[3:]
+    v.opMana = 0
     v.state = game
 
 def game():
@@ -300,10 +305,11 @@ def game():
     opcstl = gameItems.tile((4, 0), "board", False)
     v.tiles.add(opcstl)
 
-    v.gameCards = py.sprite.Group() 
+    v.gameCards = py.sprite.Group()
     v.deck = list(v.cards.values())
+    v.hand = []
     for i in range(3):
-        gameItems.add_card(v.deck[i], i)
+        v.hand.append(gameItems.add_card(v.deck[i], i))
     v.deck = v.deck[3:]
     
     v.gameDeck = py.sprite.OrderedUpdates()
@@ -337,6 +343,8 @@ def game():
         network.gameLoop()
         
     winEffect = None
+    
+    changeCount = 0
         
     while True:
         v.events = []
@@ -364,7 +372,9 @@ def game():
             v.state = finish
             return
         
-        network.changes()
+        if v.online or (changeCount % 60 == 0):
+            network.changes()
+        changeCount += 1
         
         
         if not v.pause:
@@ -383,7 +393,7 @@ def game():
             gui.update()
             
             if v.pHealth <= 0: # Opponent wins
-                if v.winner == None:
+                if v.winner == None and v.online:
                     v.account["competitive"] = 20
                     cpMult = v.account["competitive"] / v.opAccount["competitive"]
                     cpAdd = int(cpMult * -10)
@@ -395,7 +405,7 @@ def game():
                 v.winner = v.opUnid
             
             if v.opHealth <= 0: # Player wins
-                if v.winner == None:
+                if v.winner == None and v.online:
                     cpMult = v.opAccount["competitive"] / v.account["competitive"]
                     cpAdd = int(cpMult * 10)
                     if cpAdd < 2:
@@ -405,7 +415,8 @@ def game():
                 
             if v.winner != None:
                 v.networkHalt = True
-                v.comp = (v.account["competitive"], cpAdd)
+                if v.online:
+                    v.comp = (v.account["competitive"], cpAdd)
                 if winEffect == None:
                     if v.winner == v.opUnid:
                         t = pcstl
@@ -450,6 +461,7 @@ def game():
             else:
                 turnText.text = "Opponent's Turn"
                 
+                
             if v.timeLeft <= 0 and v.gameTurn["player"] == v.unid:
                 v.networkEvents.append({"type": "turn"})
                 v.gameTurn["player"] = None
@@ -479,8 +491,8 @@ def game():
             if v.pauseType == "win":
                 winScreen.update()
                 
-        if v.offline and not v.test:
-            network.ai()
+        if v.online == False and not v.test:
+            campaignAI.ai()
         
         refresh()
 

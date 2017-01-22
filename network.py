@@ -213,7 +213,7 @@ def loadMetadata():
     
 def login(username, password):
     """Will 'login' to the server"""
-    def _login():
+    def _login(count=0):
         localServerCheck()
         try:
             hash_object = hashlib.md5(password.encode())
@@ -226,8 +226,9 @@ def login(username, password):
                 getCards()
                 getAccount()
             v.loggedIn = data
-        except:
-            _login()
+        except Exception as e:
+            count += 1
+            _login(count)
     tl = threading.Thread(name="login", target=_login)
     tl.start()
     
@@ -250,6 +251,8 @@ def getAccount(username=None):
 def changes():
     """Will implement the list of changes fetched from the game server"""
     for event in v.networkChanges:
+        if v.online == False and event["type"] == "turn" and len(v.networkChanges) > 1:
+            v.networkChanges.append(v.networkChanges.pop(0))
         if event["type"] == "place":
             pos = event["position"]
             pos = (3 - pos[0], pos[1])
@@ -273,7 +276,6 @@ def changes():
                 if tile.pos == pos:
                     path = pathfind.pathfind(c.tile.pos, pos, pathfind.get_grid())
                     c.tile = tile
-            
             c.movePath = path
         
         if event["type"] == "movable":
@@ -338,4 +340,8 @@ def changes():
         if event["type"] == "stop":
             v.gameStop = event["reason"]
             v.networkHalt = True
+        
+        if v.online == False:
+            v.networkChanges.remove(event)
+            return
     v.networkChanges = []

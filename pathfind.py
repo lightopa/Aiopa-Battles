@@ -22,7 +22,7 @@ def get_grid(skip=[], castle=False):
                 [False, False, False, False],
                 [False, False, False, False]]
     for card in v.gameCards:
-        if card.tile != None and not card.tile in skip:
+        if card.tile != None and not (card.tile in skip or card.tile.pos in skip):
             if castle:
                 grid[card.tile.pos[1]][card.tile.pos[0] + 1] = True
             else:
@@ -51,7 +51,7 @@ def children(point, grid):
 def distance(point, point2):
     return abs(point.position[0] - point2.position[0]) + abs(point.position[1] - point2.position[0])
 
-def pathfind(start, end, grid):
+def pathfind(start, end, grid, fail=True):
     """Find the shortest path between two points.
     
     Args:
@@ -107,4 +107,14 @@ def pathfind(start, end, grid):
                 node.H = distance(node, end)
                 node.parent = current
                 openset.append(node)
-    return False # No path
+    if fail:
+        return False # No path
+    else: # Return what we had of a path (???)
+        path = []
+        while current.parent: # Retrace path
+            path.append(current)
+            current = current.parent
+        path.append(current)
+        path = path[::-1]
+        path = [p.position for p in path]
+        return path # Return path

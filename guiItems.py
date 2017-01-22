@@ -272,12 +272,13 @@ class endScreen(py.sprite.Sprite):
         
         self.texts = py.sprite.Group()    
         self.texts.add(menuItems.Text(text, (640, 150), (255, 255, 255), "assets/fonts/BlackChancery.ttf", 180, centred=True))
-        self.texts.add(menuItems.Text("Competitive Points:", (640, 280), (255, 255, 255), "assets/fonts/BlackChancery.ttf", 40, centred=True))
         
         self.button = menuItems.Button("Main Menu", (640, 480), 80, (250, 250, 230), (230, 230, 200), "assets/fonts/Galdeano.ttf", "begin", centred=True)
-        self.sign = " + " if v.comp[1] > 0 else " "
         
-        self.comp = menuItems.Text(str(v.comp[0]) + self.sign + str(v.comp[1]), (640, 350), (255, 255, 255), "assets/fonts/FSB.ttf", 100, centred=True)
+        if v.online:
+            self.sign = " + " if v.comp[1] > 0 else " "
+            self.texts.add(menuItems.Text("Competitive Points:", (640, 280), (255, 255, 255), "assets/fonts/BlackChancery.ttf", 40, centred=True))
+            self.comp = menuItems.Text(str(v.comp[0]) + self.sign + str(v.comp[1]), (640, 350), (255, 255, 255), "assets/fonts/FSB.ttf", 100, centred=True)
         
         self.cycle = 0
     
@@ -286,13 +287,14 @@ class endScreen(py.sprite.Sprite):
 
         self.texts.update()
         
-        if int(self.cycle / 60) + 1 <= abs(v.comp[1]):
-            self.comp.text = str(int(v.comp[0] + int(self.cycle / 60) * math.copysign(1, v.comp[1]))) + self.sign + str(int(v.comp[1] - int(self.cycle / 60) * math.copysign(1, v.comp[1])))
-            self.cycle += 1 + self.cycle / 60
-        else:
-            self.comp.text = str(int(v.comp[0] + int(self.cycle / 60) * math.copysign(1, v.comp[1])))
-            
-        self.comp.update()
+        if v.online:
+            if int(self.cycle / 60) + 1 <= abs(v.comp[1]):
+                self.comp.text = str(int(v.comp[0] + int(self.cycle / 60) * math.copysign(1, v.comp[1]))) + self.sign + str(int(v.comp[1] - int(self.cycle / 60) * math.copysign(1, v.comp[1])))
+                self.cycle += 1 + self.cycle / 60
+            else:
+                self.comp.text = str(int(v.comp[0] + int(self.cycle / 60) * math.copysign(1, v.comp[1])))
+                
+            self.comp.update()
             
         self.button.update()
         if self.button.pressed():
