@@ -38,7 +38,7 @@ def ai_move():
         for x in range(4):
             if board[y][x] != "" and board[y][x].player == 0 and board[y][x].moves > 0:
                 ai_action(board, board[y][x], priorities)
-                
+    
     
     if control[0] < 2 * v.aiMod["placeMinionMod"]:
         for p in playableCards:
@@ -50,6 +50,7 @@ def ai_move():
                         v.cardUnid += 1
                         v.networkChanges.append({"type": "place", "id": p.id, "position": ai_invertCoords(pos), "unid": unid})
                         v.opMana -= p.cost
+                        board[pos[1]][pos[0]] = "X"
                         break
 
 def print_board(board):

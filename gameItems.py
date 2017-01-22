@@ -642,7 +642,7 @@ class minionCard(gameCard):
                                         target.updateDelay += 20
                                         self.updateDelay += 20
                                         self.attackTarget = target
-                                        if range == 0 and target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
+                                        if self.range == 0 and target.changes["health"] + target.card.health <= 0 and self.changes["health"] + self.card.health > 0:
                                             v.networkEvents.append({"type": "move", "unid": self.unid, "position": v.hoverTile.pos})
                                             self.attackWon = True
                                     # If the target is a castle
