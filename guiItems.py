@@ -76,6 +76,8 @@ class coinScreen(py.sprite.Sprite):
         self.coinWait = 0
         self.coinSlow = 0
         self.state = "in"
+        self.black2 = blackFade()
+        self.black2.alpha = 255
         
     def _joined(self):
         self.joined = True
@@ -131,6 +133,7 @@ class coinScreen(py.sprite.Sprite):
                 self.state = "out"
                 v.pause = False
                 v.pauseType = None
+        self.black2.fadeOut()
 
 class healthBar(py.sprite.Sprite):
     def __init__(self, friendly):

@@ -802,13 +802,16 @@ class blankCard(py.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.center = (640, -100)
             self.aniCycle = 1
+        
+        self.alive = True
     
     def draw(self):
-        v.screen.blit(self.rimage, self.rect)
-        change(self.rect.copy().inflate(20, 20))
+        if self.alive:
+            change(v.screen.blit(self.rimage, self.rect))
     
     def update(self):
         if self.aniCycle >= 1:
+            print(self.aniCycle)
             if self.opponent == False:
                 if self.aniCycle <= 40:
                     self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
@@ -831,6 +834,8 @@ class blankCard(py.sprite.Sprite):
                     self.rimage = py.transform.scale(self.image, (int(155 * (2.98 - 0.0495 * self.aniCycle)), 220))
                 if self.aniCycle >= 60:
                     self.kill()
+                    change(self.rect)
+                    self.alive = False
             self.aniCycle += 2
         self.draw()
 
