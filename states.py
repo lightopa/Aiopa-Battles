@@ -229,10 +229,11 @@ def queue():
 
 def campaign():
     background = py.image.load("assets/images/map/map_base.png").convert_alpha()
+    background2 = py.image.load("assets/images/map/map_top.png").convert_alpha()
     
     v.mapFlags = py.sprite.Group()
     for num in range(1):
-        v.mapFlags.add(menuItems.MapFlag((250, 500), num))
+        v.mapFlags.add(menuItems.MapFlag((350, 530), num))
         
     black1 = guiItems.blackFade()
     black1.alpha = 255
@@ -248,6 +249,7 @@ def campaign():
         
         v.screen.fill((100, 100, 100))
         v.screen.blit(background, (0, 0))
+        v.screen.blit(background2, (0, 0))
         v.mapFlags.update()
         
         if v.levelDescription != None:

@@ -37,19 +37,20 @@ class Button(py.sprite.Sprite):
         self.rend = self.font.render(self.text, True, (0,0,0))
         self.set_rect()
         self.colour = self.ncolour
-        self.update()
+        self.update(draw=False)
     
     def draw(self):
         change(py.draw.rect(v.screen, self.colour, self.rect))
         v.screen.blit(self.rend, self.textPos)
     
-    def update(self):
+    def update(self, draw=True):
         self.hovered = self.rect.collidepoint(v.mouse_pos)
         if self.hovered:
             self.colour = self.hcolour
         else:
             self.colour = self.ncolour
-        self.draw()
+        
+        if draw: self.draw()
 
     def set_rect(self):
         self.rect = self.rend.get_rect()
@@ -787,6 +788,7 @@ class LevelOverview(py.sprite.Sprite):
         
         self.buttons = py.sprite.Group()
         self.buttons.add(Button("To Battle", (820, 520), 50, (150, 150, 150), (180, 180, 180), "assets/fonts/Galdeano.ttf", "play"))
+        self.buttons.add(Button("Back", (290, 520), 50, (150, 150, 150), (180, 180, 180), "assets/fonts/Galdeano.ttf", "back"))
         self._render()
     
     def _render(self):
@@ -822,11 +824,14 @@ class LevelOverview(py.sprite.Sprite):
             self.rect.centery -= 20
         for button in self.buttons:
             if button.pressed():
-                v.leaveMap = True
+                if button.ID == "play":
+                    v.leaveMap = True
+                if button.ID == "back":
+                    v.levelDescription = None
         self.draw()
         if self.rect.centery <= 360:
             self.buttons.update()
-
+        
 def rot_center(image, angle):
     """Rotate an image while keeping its center and size.
     
