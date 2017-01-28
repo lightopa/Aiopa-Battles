@@ -406,8 +406,8 @@ class spellCard(gameCard):
                 v.availableTiles = None
                 self.preCard = []
                 self.postCard = []
-                v.pMana -= self.card.cost
                 if v.hoverTile != None:
+                    v.pMana -= self.card.cost
                     target = v.hoverTile.card
                     if "damage" in self.card.effects.keys():
                         target.changes["health"] -= self.card.effects["damage"]
@@ -622,11 +622,11 @@ class minionCard(gameCard):
                     # Card in hand
                     if self.tile == None:
                         if v.pMana >= self.card.cost:
-                            v.pMana -= self.card.cost
                             for tile in v.tiles:
                                 if tile.hovered:
                                     self.tile = tile
                             if self.tile != None:
+                                v.pMana -= self.card.cost
                                 v.networkEvents.append({"type": "place", "id": self.card.id, "position": self.tile.pos, "unid": self.unid})
                                 self._render((100, 140))
                                 for card in v.gameCards:
