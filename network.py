@@ -220,15 +220,21 @@ def login(username, password):
             hash = hash_object.hexdigest()
             payload = {"username": username, "password": hash}
             jpayload = json.dumps(str(payload))
+            raise requests.Timeout
             r = requests.post(v.server + "login/", data=jpayload, timeout=1)
             data = ast.literal_eval(r.text)
             if data == True:
                 getCards()
                 getAccount()
             v.loggedIn = data
-        except Exception as e:
+        except requests.exceptions.RequestException:
             count += 1
+            if count > 4:
+                v.timeoutStage = 1
+            if count > 8:
+                v.timeoutStage = 2
             _login(count)
+    v.timeoutStage = 0
     tl = threading.Thread(name="login", target=_login)
     tl.start()
     

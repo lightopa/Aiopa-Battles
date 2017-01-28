@@ -73,6 +73,7 @@ registerSuccess = None # If registering a new account was successful
 loggedIn = False # If the player is logged in
 preloadedImages = {} # (deprecated) Possibly to store loaded images
 state = None # The current, or next state to load
+timeoutStage = 0
 
 aiMod = {"c_costMod": 1,
          "c_attackMod": 1,

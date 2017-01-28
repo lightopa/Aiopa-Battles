@@ -32,11 +32,15 @@ def boot():
 def mainMenu():
     """The main menu state"""
     buttons = py.sprite.Group()
-    buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
+    if v.loggedIn: 
+        buttons.add(menuItems.Button("Play Online", (640, 400), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "play", centred=True, bsize=(400, 100)))
+        buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "account", centred=True, bsize=(190, 80)))
+    else:
+        buttons.add(menuItems.Button("Play Online", (640, 400), 80, (100, 100, 100), (100, 100, 100), "assets/fonts/Galdeano.ttf", "-play", centred=True, bsize=(400, 100)))
+        buttons.add(menuItems.Button("Account", (745, 630), 50, (100, 100, 100), (100, 100, 100), "assets/fonts/Galdeano.ttf", "-account", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.Button("Test Run", (1000, 400), 40, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "test", centred=True, bsize=(150, 40)))
     buttons.add(menuItems.Button("Campaign", (640, 520), 80, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "camp", centred=True, bsize=(400, 100)))
     buttons.add(menuItems.Button("Options", (535, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "options", centred=True, bsize=(190, 80)))
-    buttons.add(menuItems.Button("Account", (745, 630), 50, (0, 100, 150), (20, 50, 100), "assets/fonts/Galdeano.ttf", "--", centred=True, bsize=(190, 80)))
     buttons.add(menuItems.ImageButton("assets/images/github.png", (1220, 660), (80, 80), (90, 60, 180), "github", centred=True))
     
     background = menuItems.StarBackground()
@@ -603,6 +607,7 @@ def login():
     
     loading = menuItems.LoadingCircle(200, pos=(640, 430))
     loadingText = menuItems.Text("Logging in...", (640, 550), (255, 255, 255), "assets/fonts/Galdeano.ttf", 40, centred=True)
+    offlineButton = menuItems.Button("Play Offline", (640, 620), 40, (240, 240, 240), (230, 255, 255), "assets/fonts/Galdeano.ttf", "offline", centred=True, bsize=(220, 80))
     
     wait = 0
     while True:
@@ -632,6 +637,18 @@ def login():
                 if out == "log":
                     loading.update()
                     loadingText.update()
+                    if v.timeoutStage == 1:
+                        loadingText.text = "Taking longer than expected..."
+                    if v.timeoutStage == 2:
+                        loadingText.text = "Can't connect to server"
+                        offlineButton.update()
+                        if offlineButton.pressed():
+                            v.username = uname.final
+                            v.password = pword.final
+                            network.saveMetadata()
+                            v.loggedIn = False
+                            v.state = mainMenu
+                            return
                     wait += 1
                     if v.loggedIn != False and wait > 100:
                         if v.loggedIn == True:
