@@ -251,7 +251,7 @@ def campaign():
         v.events = py.event.get()
         v.clock.tick(60)
         
-        v.screen.fill((100, 100, 100))
+        v.screen.fill((153, 102, 51))
         v.screen.blit(background, (0, 0))
         v.screen.blit(background2, (0, 0))
         v.mapFlags.update()

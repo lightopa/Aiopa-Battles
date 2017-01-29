@@ -51,6 +51,7 @@ def ai_move():
                         v.networkChanges.append({"type": "place", "id": p.id, "position": ai_invertCoords(pos), "unid": unid})
                         v.opMana -= p.cost
                         board[pos[1]][pos[0]] = "X"
+                        v.opHand.remove(p)
                         break
 
 def print_board(board):

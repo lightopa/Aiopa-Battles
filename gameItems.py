@@ -811,7 +811,6 @@ class blankCard(py.sprite.Sprite):
     
     def update(self):
         if self.aniCycle >= 1:
-            print(self.aniCycle)
             if self.opponent == False:
                 if self.aniCycle <= 40:
                     self.rimage = py.transform.scale(self.image, (int(125 + 30 * self.aniCycle/40), int(176 + 44 * self.aniCycle/40)))
