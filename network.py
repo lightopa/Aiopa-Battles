@@ -220,7 +220,6 @@ def login(username, password):
             hash = hash_object.hexdigest()
             payload = {"username": username, "password": hash}
             jpayload = json.dumps(str(payload))
-            raise requests.Timeout
             r = requests.post(v.server + "login/", data=jpayload, timeout=1)
             data = ast.literal_eval(r.text)
             if data == True:
