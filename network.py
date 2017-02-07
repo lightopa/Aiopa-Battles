@@ -326,18 +326,19 @@ def changes():
             v.gameTurn = event["turn"]
             for s in v.gameCards:
                 if s.type == "minion":
-                    if v.gameTurn["player"] == v.unid:
+                    if v.gameTurn["player"] == v.unid: # If player's turn
                         if s.player == v.unid and s.tile != None:
                             s.next_turn()
-                    if v.gameTurn["player"] == v.opUnid:
+                    if v.gameTurn["player"] == v.opUnid: # If opponent's turn
                         if s.player == v.opUnid:
                             s.moves = 1
-            if v.gameTurn["player"] == v.unid:
-                for card in v.gameDeck:
-                    if card.order == 0:
-                        card.aniCycle = 1
-                    else:
-                        card.order -= 1
+            if v.gameTurn["player"] == v.unid: # If player's turn
+                if len(v.hand) < 4:
+                    for card in v.gameDeck:
+                        if card.order == 0:
+                            card.aniCycle = 1
+                        else:
+                            card.order -= 1
                 v.pturn.cycle = 1
                 if v.totalMana < 10:
                     v.totalMana += 1

@@ -7,7 +7,7 @@ def ai():
     for event in v.networkEvents:
         if event["type"] == "turn":
             v.networkChanges.append({"type": "turn", "turn": {"player": v.opUnid, "time": time.time()}})
-            if len(v.opDeck) > 0:
+            if len(v.opDeck) > 0 and len(v.opHand) < 4:
                 v.opHand.append(v.opDeck.pop(0))
             v.opMana = v.totalMana
             for s in v.gameCards:
@@ -24,22 +24,27 @@ def ai_move():
              ["", "", "", ""],
              ["", "", "", ""]]
     
+    # Place cards in board
     for card in v.gameCards:
         if card.tile != None:
             board[card.tile.pos[1]][card.tile.pos[0]] = card
     
+    # Get cards that could be played
     playableCards = [c for c in v.opHand if c.cost <= v.opMana]
     
+    # Generate board control stats
     control = ai_control(board)
     
+    # Generate priorities
     priorities = ai_priorities(board)
     
+    # Play each ai card
     for y in range(3):
         for x in range(4):
             if board[y][x] != "" and board[y][x].player == 0 and board[y][x].moves > 0:
                 ai_action(board, board[y][x], priorities)
     
-    
+    # Place cards
     if control[0] < 2 * v.aiMod["placeMinionMod"]:
         for p in playableCards:
             if p.type == "minion" and p.cost <= v.opMana:
@@ -63,6 +68,8 @@ def ai_control(board):
     #Perhaps the number of enemy minions each player could kill
     aiControl = 1
     pControl = 1
+    
+    # Adds the rank of each card owned by each player
     for y in board:
         for x in y:
             c = x
@@ -75,12 +82,14 @@ def ai_control(board):
     return ratio, aiControl, pControl
 
 def ai_rank(c, hmod=1, mxhmod=1):
+    # Gets a card's rank based on its stats
     out = ((c.card.cost * v.aiMod["c_costMod"])
              + ((c.card.attack + c.changes["attack"]) * v.aiMod["c_attackMod"])
              + ((c.card.health + c.changes["health"]) * v.aiMod["c_healthMod"] * hmod)
              + ((c.card.health / (c.card.health + c.changes["health"])) * v.aiMod["c_mxHealthMod"] * mxhmod))
     
     path = pathfind.pathfind(c.tile.pos, (-1, 1), pathfind.get_grid(castle=True))
+    # Gets card's distance from opponent castle
     if path != False:
         while path[-1][0] > 3 and path[-2][0] > 3:
             path = path[:-1]
