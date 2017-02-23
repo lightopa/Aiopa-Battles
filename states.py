@@ -11,9 +11,12 @@ import tween
 import random
 from functools import wraps
 from webbrowser import open as wbopen
+import ctypes
 
 def boot():
     """Sets up the game and starts the mainMenu state"""
+    user32 = ctypes.windll.user32
+    user32.SetProcessDPIAware()
     py.init()
     network.loadMetadata()
     updateDisplay()
